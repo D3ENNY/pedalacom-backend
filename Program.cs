@@ -1,7 +1,10 @@
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using WebAppPedalaCom.Models;
+using WebAppTestEmployees.Blogic.Authentication;
 
 namespace WebAppPedalaCom
 {
@@ -22,6 +25,13 @@ namespace WebAppPedalaCom
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+
+            builder.Services.AddAuthorization(opt =>
+            {
+                opt.AddPolicy("BasicAuthentication", new AuthorizationPolicyBuilder("BasicAuthentication").RequireAuthenticatedUser().Build());
+            });
 
             builder.Services.AddCors(opt => // to add for CORS Policy access!
             {
@@ -46,6 +56,7 @@ namespace WebAppPedalaCom
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
 
             app.MapControllers();
 

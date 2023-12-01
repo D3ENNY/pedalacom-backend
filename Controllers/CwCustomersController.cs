@@ -5,7 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebAppTestEmployees.Blogic.Authentication;
 using WebAppPedalaCom.Models;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
+
 
 namespace WebAppPedalaCom.Controllers
 {
@@ -32,14 +37,14 @@ namespace WebAppPedalaCom.Controllers
         }
 
         // GET: api/CwCustomers/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CwCustomer>> GetCwCustomer(int id)
+        [HttpGet("{email}")]
+        public async Task<ActionResult<CwCustomer>> GetCwCustomer(string email)
         {
           if (_context.CwCustomers == null)
           {
               return NotFound();
           }
-            var cwCustomer = await _context.CwCustomers.FindAsync(id);
+            var cwCustomer = await _context.CwCustomers.Where(e => e.EmailAddress == email).FirstOrDefaultAsync();
 
             if (cwCustomer == null)
             {
@@ -89,22 +94,55 @@ namespace WebAppPedalaCom.Controllers
           {
               return Problem("Entity set 'CredentialWorks2024Context.CwCustomers'  is null.");
           }
+            KeyValuePair<string, string> hashpass = EncryptSaltString(cwCustomer.PasswordHash);
+
+            cwCustomer.PasswordHash = hashpass.Value;
+
+            cwCustomer.PasswordSalt = hashpass.Key;
+
             _context.CwCustomers.Add(cwCustomer);
                 await _context.SaveChangesAsync();
         
 
-            return CreatedAtAction("GetCwCustomer", new { id = cwCustomer.CustomerId }, cwCustomer);
+            return CreatedAtAction("GetCwCustomer", new { email = cwCustomer.EmailAddress }, cwCustomer);
+        }
+
+        private KeyValuePair<string, string> EncryptSaltString(string pwdNeedToHash)
+        {
+            byte[] byteSalt = new byte[16];
+            string EncResult = string.Empty;
+            string EncSalt = string.Empty;
+            try
+            {
+                RandomNumberGenerator.Fill(byteSalt);
+                EncResult = Convert.ToBase64String(
+                    KeyDerivation.Pbkdf2(
+                        password: pwdNeedToHash,
+                        salt: byteSalt,
+                        prf: KeyDerivationPrf.HMACSHA256,
+                        iterationCount: 10000,
+                        numBytesRequested: 132
+                    )
+                );
+                EncSalt = Convert.ToBase64String(byteSalt);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return new KeyValuePair<string, string>(EncSalt, EncResult);
         }
 
         // DELETE: api/CwCustomers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCwCustomer(int id)
+        [HttpDelete("{email}")]
+        public async Task<IActionResult> DeleteCwCustomer(string email)
         {
             if (_context.CwCustomers == null)
             {
                 return NotFound();
             }
-            var cwCustomer = await _context.CwCustomers.FindAsync(id);
+            var cwCustomer = await _context.CwCustomers.Where(e => e.EmailAddress == email).FirstOrDefaultAsync();
             if (cwCustomer == null)
             {
                 return NotFound();
