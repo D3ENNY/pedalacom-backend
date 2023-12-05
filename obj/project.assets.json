@@ -11668,24 +11668,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Gabriele\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Betacom\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "projectUniqueName": "C:\\Users\\Betacom\\Desktop\\BackEndProject\\WebAppPedalaCom.csproj",
       "projectName": "WebAppPedalaCom",
-      "projectPath": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
-      "packagesPath": "C:\\Users\\Gabriele\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\obj\\",
+      "projectPath": "C:\\Users\\Betacom\\Desktop\\BackEndProject\\WebAppPedalaCom.csproj",
+      "packagesPath": "C:\\Users\\Betacom\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Betacom\\Desktop\\BackEndProject\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Gabriele\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\Betacom\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -11693,7 +11688,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -11758,7 +11752,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }

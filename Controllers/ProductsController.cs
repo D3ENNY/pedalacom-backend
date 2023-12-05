@@ -28,7 +28,7 @@ namespace WebAppPedalaCom.Controllers
           {
               return NotFound();
           }
-            return await _context.Products.ToListAsync();
+            return await _context.Products.ToListAsync(); //PORCODDDDIO
         }
 
         // GET: api/Products/5
