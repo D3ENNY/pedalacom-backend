@@ -10,7 +10,7 @@ using WebAppPedalaCom.Models;
 namespace WebAppPedalaCom.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
+    [ApiController] // to update
     public class ProductsController : ControllerBase
     {
         private readonly AdventureWorksLt2019Context _context;
