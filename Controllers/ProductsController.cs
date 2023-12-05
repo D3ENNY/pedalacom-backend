@@ -28,7 +28,12 @@ namespace WebAppPedalaCom.Controllers
           {
               return NotFound();
           }
-            return await _context.Products.ToListAsync(); //PORCODDDDIO
+            return await _context.Products
+                .Include(prd => prd.ProductModel) // Include Table ProductModel
+                .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
+                .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
+                .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
+                .ToListAsync();
         }
 
         // GET: api/Products/5
@@ -39,7 +44,14 @@ namespace WebAppPedalaCom.Controllers
           {
               return NotFound();
           }
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(prd => prd.ProductModel) // Include Table ProductModel
+                .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
+                .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
+                .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
+                //.Where(prd => prd.ProductId == id)
+                .FirstOrDefaultAsync(prd => prd.ProductId == id);
+
 
             if (product == null)
             {
