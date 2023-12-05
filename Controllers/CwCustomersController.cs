@@ -9,8 +9,7 @@ using WebAppTestEmployees.Blogic.Authentication;
 using WebAppPedalaCom.Models;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-
-
+using Microsoft.Data.SqlClient;
 
 namespace WebAppPedalaCom.Controllers
 {
@@ -90,11 +89,56 @@ namespace WebAppPedalaCom.Controllers
         [HttpPost]
         public async Task<ActionResult<CwCustomer>> PostCwCustomer(CwCustomer cwCustomer)
         {
+
           if (_context.CwCustomers == null)
           {
               return Problem("Entity set 'CredentialWorks2024Context.CwCustomers'  is null.");
           }
-            KeyValuePair<string, string> hashpass = EncryptSaltString(cwCustomer.PasswordHash);
+            KeyValuePair<string, string> hashpass;
+            using (var authorizationDB = new AdventureWorksLt2019Context())
+            {
+                var findUser = authorizationDB.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
+
+                if(findUser != null)
+                {
+                    if(findUser.FkCustomerId != null)
+                    {
+                        //Nel caso in cui è già registrato anche nel nuovo database
+                        return Problem("Esisti già pirla");
+                    }
+                    else
+                    {
+                        //Nel caso in cui non fosse già registrato nel nuovo databasio
+
+                        hashpass = EncryptSaltString(cwCustomer.PasswordHash);
+
+                        cwCustomer.PasswordHash = hashpass.Value;
+
+                        cwCustomer.PasswordSalt = hashpass.Key;
+
+                        _context.CwCustomers.Add(cwCustomer);
+
+                        await _context.SaveChangesAsync();
+
+                        var newUser = _context.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
+
+
+                        var emailParameter = new SqlParameter("@email", cwCustomer.EmailAddress);
+                        var idParameter = new SqlParameter("@id", newUser.CustomerId);
+
+                        authorizationDB.Database.ExecuteSqlRaw($"UPDATE [SalesLT].[Customer] SET [NameStyle] = ''  " +
+                            $",[Title] = null ,[FirstName] = ''  ,[MiddleName] = null ,[LastName] = '' ,[Suffix] = null ,[CompanyName] = null ,[SalesPerson] = null " +
+                            $",[EmailAddress] = null ,[Phone] = null  ,[PasswordHash] = '' ,[PasswordSalt] = '' ,[ModifiedDate] = GETDATE() " +
+                            $",[FK_Customer_id] = {idParameter.ParameterName} WHERE EmailAddress = {emailParameter.ParameterName}",
+                            emailParameter, idParameter);
+
+
+                        return CreatedAtAction("GetCwCustomer", new { email = cwCustomer.EmailAddress }, cwCustomer);
+                    }
+                }
+            }
+
+            hashpass = EncryptSaltString(cwCustomer.PasswordHash);
 
             cwCustomer.PasswordHash = hashpass.Value;
 
