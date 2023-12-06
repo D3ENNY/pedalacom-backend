@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebAppTestEmployees.Blogic.Authentication;
 using WebAppPedalaCom.Models;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Data.SqlClient;
-using Microsoft.AspNetCore.Identity;
-using System.Net;
 
 namespace WebAppPedalaCom.Controllers
 {
@@ -19,189 +11,148 @@ namespace WebAppPedalaCom.Controllers
     [ApiController]
     public class CwCustomersController : ControllerBase
     {
-        private readonly CredentialWorks2024Context _context;
+        private readonly CredentialWorks2024Context _CWcontext;
 
-        public CwCustomersController(CredentialWorks2024Context context)
-        {
-            _context = context;
-        }
+        public CwCustomersController(CredentialWorks2024Context _context) => this._CWcontext = _context;
 
         // GET: api/CwCustomers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CwCustomer>>> GetCwCustomers()
         {
-            if (_context.CwCustomers == null)
-            {
+            if (_CWcontext.CwCustomers == null)
                 return NotFound();
-            }
-            return await _context.CwCustomers.ToListAsync();
+
+            return await _CWcontext.CwCustomers.ToListAsync();
         }
 
         // GET: api/CwCustomers/5
         [HttpGet("{email}")]
         public async Task<ActionResult<CwCustomer>> GetCwCustomer(string email)
         {
-            if (_context.CwCustomers == null)
-            {
+            if (_CWcontext.CwCustomers == null)
                 return NotFound();
-            }
-            var cwCustomer = await _context.CwCustomers.Where(e => e.EmailAddress == email).FirstOrDefaultAsync();
+
+            var cwCustomer = await _CWcontext.CwCustomers.FirstOrDefaultAsync(e => e.EmailAddress == email);
 
             if (cwCustomer == null)
-            {
                 return NotFound();
-            }
 
             return cwCustomer;
         }
 
         // PUT: api/CwCustomers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCwCustomer(int id, CwCustomer cwCustomer)
+        [HttpPut("{email}")]
+        public async Task<IActionResult> PutCwCustomer(string email, CwCustomer cwCustomer)
         {
-            if (id != cwCustomer.CustomerId)
-            {
+            if (email != cwCustomer.EmailAddress)
                 return BadRequest();
-            }
 
-            _context.Entry(cwCustomer).State = EntityState.Modified;
+            var existingCustomer = await _CWcontext.CwCustomers.FirstOrDefaultAsync(e => e.EmailAddress == email);
+            existingCustomer.UpdateCustomer(cwCustomer);
+
+            if (existingCustomer == null)
+                return NotFound();
+
+            _CWcontext.Entry(existingCustomer).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _CWcontext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CwCustomerExists(id))
-                {
+                if (!CwCustomerExists(email))
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                else throw;
             }
 
             return NoContent();
         }
 
         // POST: api/CwCustomers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<CwCustomer>> PostCwCustomer(CwCustomer cwCustomer)
         {
 
-            if (_context.CwCustomers == null)
-            {
+            if (_CWcontext.CwCustomers == null)
                 return Problem("Entity set 'CredentialWorks2024Context.CwCustomers'  is null.");
-            }
-            KeyValuePair<string, string> hashpass;
-            using (var _authorizationDB = new AdventureWorksLt2019Context())
+
+            using AdventureWorksLt2019Context _AWcontext = new();
+            Customer userExistOldDB = _AWcontext.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
+
+            if (userExistOldDB != null)
             {
-                var userExistOldDB = _authorizationDB.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
-
-                if (userExistOldDB != null)
+                if (userExistOldDB.FkCustomerId != null)
+                    //Nel caso in cui è già registrato anche nel nuovo database
+                    return Problem("Esisti già pirla");
+                else
                 {
-                    if (userExistOldDB.FkCustomerId != null)
-                    {
-                        //Nel caso in cui è già registrato anche nel nuovo database
-                        return Problem("Esisti già pirla");
-                    }
-                    else
-                    {
-                        //Nel caso in cui non fosse già registrato nel nuovo databasio
+                    //Nel caso in cui non fosse già registrato nel nuovo databasio
+                    UpdatePwdCustomers(cwCustomer);
+                    await _CWcontext.SaveChangesAsync();
 
-                        hashpass = EncryptSaltString(cwCustomer.PasswordHash);
+                    CwCustomer newUser = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
 
-                        cwCustomer.PasswordHash = hashpass.Value;
+                    SqlParameter emailParameter = new("@email", cwCustomer.EmailAddress);
 
-                        cwCustomer.PasswordSalt = hashpass.Key;
+                    SqlParameter idParameter = new("@id", newUser.CustomerId);
 
-                        _context.CwCustomers.Add(cwCustomer);
-
-                        await _context.SaveChangesAsync();
-
-                        var newUser = _context.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
-
-                        var emailParameter = new SqlParameter("@email", cwCustomer.EmailAddress);
-
-                        var idParameter = new SqlParameter("@id", newUser.CustomerId);
-
-                        _authorizationDB.Database.ExecuteSqlRaw($"UPDATE [SalesLT].[Customer] SET [NameStyle] = ''  " +
-                           $",[Title] = null ,[FirstName] = ''  ,[MiddleName] = null ,[LastName] = '' ,[Suffix] = null ,[CompanyName] = null ,[SalesPerson] = null " +
-                           $",[EmailAddress] = null ,[Phone] = null  ,[PasswordHash] = '' ,[PasswordSalt] = '' ,[ModifiedDate] = GETDATE() " +
-                           $",[FK_Customer_id] = {idParameter.ParameterName} WHERE EmailAddress = {emailParameter.ParameterName}",
-                           emailParameter, idParameter);
+                    _AWcontext.Database.ExecuteSqlRaw($"UPDATE [SalesLT].[Customer] SET [NameStyle] = ''  " +
+                       $",[Title] = null ,[FirstName] = ''  ,[MiddleName] = null ,[LastName] = '' ,[Suffix] = null ,[CompanyName] = null ,[SalesPerson] = null " +
+                       $",[EmailAddress] = null ,[Phone] = null  ,[PasswordHash] = '' ,[PasswordSalt] = '' ,[ModifiedDate] = GETDATE() " +
+                       $",[FK_Customer_id] = {idParameter.ParameterName} WHERE EmailAddress = {emailParameter.ParameterName}",
+                       emailParameter, idParameter);
 
 
-                        return CreatedAtAction("GetCwCustomer", new { email = cwCustomer.EmailAddress }, cwCustomer);
-                    }
+                    return CreatedAtAction("GetCwCustomer", new { email = cwCustomer.EmailAddress }, cwCustomer);
                 }
             }
 
-            var userExistNewDB = _context.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
+            CwCustomer userExistNewDB = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
 
             if (userExistNewDB != null)
-            {
-                return Problem("Esisti già pirla");
-            }
+                return Conflict("Esisti già pirla");
             else
             {
-                hashpass = EncryptSaltString(cwCustomer.PasswordHash);
 
-                cwCustomer.PasswordHash = hashpass.Value;
+                UpdatePwdCustomers(cwCustomer);
+                await _CWcontext.SaveChangesAsync();
 
-                cwCustomer.PasswordSalt = hashpass.Key;
+                CwCustomer newUser = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
 
-                _context.CwCustomers.Add(cwCustomer);
+                SqlParameter idParameter = new("@id", newUser.CustomerId);
 
-                await _context.SaveChangesAsync();
-
-                var newUser = _context.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
-
-                using (var _authorizationDB = new AdventureWorksLt2019Context())
-                {
-                    var idParameter = new SqlParameter("@id", newUser.CustomerId);
-
-                    _authorizationDB.Database.ExecuteSqlRaw($"INSERT INTO [SalesLT].[Customer] ([NameStyle], [FirstName], [LastName], [PasswordHash], [PasswordSalt], [ModifiedDate], [FK_Customer_id]) VALUES('', '', '', '', '', GETDATE(), {idParameter.ParameterName})",idParameter);
-                }
+                _AWcontext.Database.ExecuteSqlRaw($"INSERT INTO [SalesLT].[Customer] ([NameStyle], [FirstName], [LastName], [PasswordHash], [PasswordSalt], [ModifiedDate], [FK_Customer_id]) VALUES('', '', '', '', '', GETDATE(), {idParameter.ParameterName})", idParameter);
 
                 return CreatedAtAction("GetCwCustomer", new { email = cwCustomer.EmailAddress }, cwCustomer);
             }
-
         }
-
 
         // DELETE: api/CwCustomers/5
         [HttpDelete("{email}")]
         public async Task<IActionResult> DeleteCwCustomer(string email)
         {
-            if (_context.CwCustomers == null)
-            {
+            if (_CWcontext.CwCustomers == null)
                 return NotFound();
-            }
-            var cwCustomer = await _context.CwCustomers.Where(e => e.EmailAddress == email).FirstOrDefaultAsync();
-            if (cwCustomer == null)
-            {
-                return NotFound();
-            }
+  
+            CwCustomer cwCustomer = await _CWcontext.CwCustomers.FirstOrDefaultAsync(e => e.EmailAddress == email);
 
-            _context.CwCustomers.Remove(cwCustomer);
-            await _context.SaveChangesAsync();
+            if (cwCustomer == null)
+                return NotFound();
+
+            _CWcontext.CwCustomers.Remove(cwCustomer);
+            await _CWcontext.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool CwCustomerExists(int id)
-        {
-            return (_context.CwCustomers?.Any(e => e.CustomerId == id)).GetValueOrDefault();
-        }
+        private bool CwCustomerExists(string email) => (_CWcontext.CwCustomers?.Any(e => e.EmailAddress == email)).GetValueOrDefault();
+
         private KeyValuePair<string, string> EncryptSaltString(string pwdNeedToHash)
         {
             byte[] byteSalt = new byte[16];
-            string EncResult = string.Empty;
-            string EncSalt = string.Empty;
+            string EncSalt, EncResult;
+ 
             try
             {
                 RandomNumberGenerator.Fill(byteSalt);
@@ -216,7 +167,7 @@ namespace WebAppPedalaCom.Controllers
                 );
                 EncSalt = Convert.ToBase64String(byteSalt);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 throw;
             }
@@ -224,9 +175,15 @@ namespace WebAppPedalaCom.Controllers
             return new KeyValuePair<string, string>(EncSalt, EncResult);
         }
 
-        private void insertNewUser(User user)
+        private void UpdatePwdCustomers(CwCustomer customer)
         {
-            //da fare quando denny si sveglia
+            KeyValuePair<string, string> hashpass = EncryptSaltString(customer.PasswordHash);
+
+            customer.PasswordHash = hashpass.Value;
+
+            customer.PasswordSalt = hashpass.Key;
+
+            _CWcontext.CwCustomers.Add(customer);
         }
 
     }

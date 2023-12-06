@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using WebAppPedalaCom.Models;
 using WebAppTestEmployees.Blogic.Authentication;
 
@@ -36,7 +35,7 @@ namespace WebAppPedalaCom.Controllers
                         prf: KeyDerivationPrf.HMACSHA256,
                         iterationCount: 10000,
                         numBytesRequested: 132
-                );
+                    );
 
                     string PasswordHashed = Convert.ToBase64String(EncResult );
 

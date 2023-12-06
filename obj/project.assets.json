@@ -11668,24 +11668,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\MyNam\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\admin\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "projectUniqueName": "C:\\Users\\admin\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
       "projectName": "WebAppPedalaCom",
-      "projectPath": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
-      "packagesPath": "C:\\Users\\MyNam\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\obj\\",
+      "projectPath": "C:\\Users\\admin\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\admin\\source\\repos\\WebAppPedalaCom\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\MyNam\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

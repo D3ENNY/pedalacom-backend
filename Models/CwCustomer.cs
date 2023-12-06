@@ -28,4 +28,17 @@ public partial class CwCustomer
     public string? PasswordSalt { get; set; }
 
     public DateTime? ModifiedDate { get; set; }
+
+    public void UpdateCustomer(CwCustomer customer)
+    {
+        this.Title = customer.Title;
+        this.FirstName = customer.FirstName;
+        this.LastName = customer.LastName;
+        this.CompanyName = customer.CompanyName;
+        this.EmailAddress = customer.EmailAddress;
+        this.Phone = customer.Phone;
+        this.PasswordHash = customer.PasswordHash;
+        this.PasswordSalt = customer.PasswordSalt;
+        this.ModifiedDate = DateTime.UtcNow;
+    }
 }
