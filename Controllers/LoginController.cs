@@ -43,7 +43,11 @@ namespace WebAppPedalaCom.Controllers
 
                     if( utente != null)
                     {
-                        return Ok();
+                        
+                        return Ok(new
+                        {
+                            utente.FirstName, utente.CustomerId 
+                        });
                     }
                     else
                     {

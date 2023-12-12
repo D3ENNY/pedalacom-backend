@@ -48,6 +48,7 @@ namespace WebAppPedalaCom.Controllers
                 return BadRequest();
 
             var existingCustomer = await _CWcontext.CwCustomers.FirstOrDefaultAsync(e => e.EmailAddress == email);
+
             existingCustomer.UpdateCustomer(cwCustomer);
 
             if (existingCustomer == null)
@@ -114,8 +115,10 @@ namespace WebAppPedalaCom.Controllers
                 return Conflict("Esisti già pirla");
             else
             {
+                cwCustomer.ModifiedDate = DateTime.Now;
 
                 UpdatePwdCustomers(cwCustomer);
+
                 await _CWcontext.SaveChangesAsync();
 
                 CwCustomer newUser = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", cwCustomer.EmailAddress)).FirstOrDefault();
