@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Models;
 
@@ -15,61 +16,82 @@ namespace WebAppPedalaCom.Controllers
     {
         private readonly AdventureWorksLt2019Context _context;
 
-        public ProductsController(AdventureWorksLt2019Context context)
-        {
-            _context = context;
-        }
+        public ProductsController(AdventureWorksLt2019Context context) => _context = context;
+
+        /*      *
+         *      *
+         *  GET *  
+         *      *
+         *      */
 
         // GET: api/Products
         [HttpGet]
+        [ActionName("GetProducts")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
+            if (_context.Products == null)
+                return NotFound();
+
             return await _context.Products
-                .Include(prd => prd.ProductModel) // Include Table ProductModel
-                .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
-                .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
-                .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
-                .ToListAsync();
+                 .Include(prd => prd.ProductModel) // Include Table ProductModel
+                 .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
+                 .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
+                 .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
+                 .ToListAsync();
         }
 
-        // GET: api/Products/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        // GET: api/Products/{id}
+        [HttpGet("{id:int}")]
+        [ActionName("GetProductsByID")]
+        public async Task<ActionResult<Product>> GetProductsById(int id)
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
+            if (_context.Products == null)
+                return NotFound();
+
             var product = await _context.Products
                 .Include(prd => prd.ProductModel) // Include Table ProductModel
                 .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
                 .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
                 .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
-                //.Where(prd => prd.ProductId == id)
                 .FirstOrDefaultAsync(prd => prd.ProductId == id);
 
-
             if (product == null)
-            {
                 return NotFound();
-            }
-
             return product;
         }
 
-        // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("info/")]
+        [ActionName("GetInfoProductsByCategory")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetInfoProductsByCategory([FromBody]Category[] category, string searchData)
+        {
+            if (_context.Products == null)
+                return NotFound();
+
+            List<Product> products = await _context.Products.FromSqlRaw($"", new SqlParameter("@email", )).ToListAsync();
+
+            return Ok(category);
+
+            /*
+             SELECT P.Name, P.ProductCategoryID, P.ListPrice FROM [SalesLT].[Product] as P
+INNER JOIN [SalesLT].[ProductCategory] AS PC ON (P.ProductCategoryID = PC.ProductCategoryID)
+WHERE PC.Name IN ('Mountain Bikes') 
+AND P.Name LIKE '%bikes%'
+             
+             */
+        }
+
+        /*      *
+         *      *
+         *  PUT *  
+         *      *
+         *      */
+
+        // PUT: api/Products/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
             if (id != product.ProductId)
-            {
                 return BadRequest();
-            }
 
             _context.Entry(product).State = EntityState.Modified;
 
@@ -80,46 +102,37 @@ namespace WebAppPedalaCom.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!ProductExists(id))
-                {
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                else throw;
             }
 
             return NoContent();
         }
 
         // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
-          if (_context.Products == null)
-          {
-              return Problem("Entity set 'AdventureWorksLt2019Context.Products'  is null.");
-          }
+            if (_context.Products == null)
+                return Problem("Entity set 'AdventureWorksLt2019Context.Products'  is null.");
+
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetProduct", new { id = product.ProductId }, product);
         }
 
-        // DELETE: api/Products/5
+        // DELETE: api/Products/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             if (_context.Products == null)
-            {
                 return NotFound();
-            }
+
             var product = await _context.Products.FindAsync(id);
+
             if (product == null)
-            {
                 return NotFound();
-            }
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
@@ -127,9 +140,7 @@ namespace WebAppPedalaCom.Controllers
             return NoContent();
         }
 
-        private bool ProductExists(int id)
-        {
-            return (_context.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
-        }
+        private bool ProductExists(int id) => (_context.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
+
     }
 }

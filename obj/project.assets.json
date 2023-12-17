@@ -11668,23 +11668,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Gabriele\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\denny\\.nuget\\packages\\": {},
+    "A:\\Programmi\\Visual studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "projectUniqueName": "D:\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
       "projectName": "WebAppPedalaCom",
-      "projectPath": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
-      "packagesPath": "C:\\Users\\Gabriele\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Gabriele\\Documents\\Betacom\\Progetto_gruppo_ordinato\\WebAppPedalaCom\\obj\\",
+      "projectPath": "D:\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "packagesPath": "C:\\Users\\denny\\.nuget\\packages\\",
+      "outputPath": "D:\\source\\repos\\WebAppPedalaCom\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "A:\\Programmi\\Visual studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Gabriele\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\denny\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -11758,7 +11758,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }
