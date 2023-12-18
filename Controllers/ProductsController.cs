@@ -67,7 +67,7 @@ namespace WebAppPedalaCom.Controllers
             if (_context.Products == null)
                 return NotFound();
 
-            List<Product> products = await _context.Products.FromSqlRaw($"", new SqlParameter("@email", )).ToListAsync();
+            List<Product> products = await _context.Products.FromSqlRaw($"", new SqlParameter("@email", "")).ToListAsync();
 
             return Ok(category);
 

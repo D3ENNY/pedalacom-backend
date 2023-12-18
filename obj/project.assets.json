@@ -11668,23 +11668,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\denny\\.nuget\\packages\\": {},
-    "A:\\Programmi\\Visual studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\MyNam\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "projectUniqueName": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
       "projectName": "WebAppPedalaCom",
-      "projectPath": "D:\\source\\repos\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
-      "packagesPath": "C:\\Users\\denny\\.nuget\\packages\\",
-      "outputPath": "D:\\source\\repos\\WebAppPedalaCom\\obj\\",
+      "projectPath": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\WebAppPedalaCom.csproj",
+      "packagesPath": "C:\\Users\\MyNam\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\MyNam\\Documents\\Betacom\\WebAppPedalaCom\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "A:\\Programmi\\Visual studio\\Shared\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\denny\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\MyNam\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -11758,7 +11758,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }
