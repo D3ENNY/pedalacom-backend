@@ -51,12 +51,12 @@ namespace WebAppPedalaCom.Controllers
                     }
                     else
                     {
-                        return BadRequest();
+                        return BadRequest("wrongPassword");
                     }
                 }
                 else
                 {
-                   return BadRequest();
+                   return BadRequest("userNotFound");
                 }
 
 
