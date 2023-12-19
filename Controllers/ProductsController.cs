@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Models;
@@ -62,22 +57,31 @@ namespace WebAppPedalaCom.Controllers
 
         [HttpPost("info/")]
         [ActionName("GetInfoProductsByCategory")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetInfoProductsByCategory([FromBody]Category[] category, string searchData)
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "")
         {
             if (_context.Products == null)
                 return NotFound();
 
-            List<Product> products = await _context.Products.FromSqlRaw($"", new SqlParameter("@email", "")).ToListAsync();
+            List<SqlParameter> parameter = new() { new SqlParameter("@searchParam", searchData )};
+            if (category != null && category.Any())
+                parameter.Add(new SqlParameter("@categories", string.Join(',', category.Select(c => c.ToString()).ToList())));
+            else parameter.Add(new SqlParameter("@categories", DBNull.Value));
 
-            return Ok(category);
+            List<InfoProduct> products = await _context.Products.FromSqlRaw($@"SELECT * 
+                          FROM [SalesLT].[Product] as P
+                          INNER JOIN [SalesLT].[ProductCategory] AS PC ON (P.ProductCategoryID = PC.ProductCategoryID) 
+                          WHERE PC.Name IN (@categories) AND 
+                            P.Name LIKE '%@searchParam%'",
+                            parameter.ToArray()
+                ).Select(obj => new InfoProduct
+                {
+                    productName = obj.Name,
+                    productId = obj.ProductId,
+                    productPrice = obj.ListPrice
+                }).ToListAsync();
 
-            /*
-             SELECT P.Name, P.ProductCategoryID, P.ListPrice FROM [SalesLT].[Product] as P
-INNER JOIN [SalesLT].[ProductCategory] AS PC ON (P.ProductCategoryID = PC.ProductCategoryID)
-WHERE PC.Name IN ('Mountain Bikes') 
-AND P.Name LIKE '%bikes%'
-             
-             */
+            return Ok(products);
+
         }
 
         /*      *
