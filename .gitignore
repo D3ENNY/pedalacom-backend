@@ -1,6 +1,7 @@
 #c# build directory
 ./obj/
 ./bin/
-
+bin/
+obj/
 #vs
 .vs/
