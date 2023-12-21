@@ -16,6 +16,14 @@ namespace WebAppPedalaCom.Controllers
         [HttpPost]
         public IActionResult Auth(User user)
         {
+            
+            using AdventureWorksLt2019Context _AWcontext = new();
+            Customer userExistOldDB = _AWcontext.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).FirstOrDefault();
+            if (userExistOldDB != null)
+            {
+                return BadRequest("OldUser");
+            }
+
 
             using (var authorizationDB = new CredentialWorks2024Context())
             {
