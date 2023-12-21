@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Models;
 
@@ -62,23 +62,18 @@ namespace WebAppPedalaCom.Controllers
             if (_context.Products == null)
                 return NotFound();
 
-            List<SqlParameter> parameter = new() { new SqlParameter("@searchParam", searchData )};
-            if (category != null && category.Any())
-                parameter.Add(new SqlParameter("@categories", string.Join(',', category.Select(c => c.ToString()).ToList())));
-            else parameter.Add(new SqlParameter("@categories", DBNull.Value));
-
-            List<InfoProduct> products = await _context.Products.FromSqlRaw($@"SELECT * 
-                          FROM [SalesLT].[Product] as P
-                          INNER JOIN [SalesLT].[ProductCategory] AS PC ON (P.ProductCategoryID = PC.ProductCategoryID) 
-                          WHERE PC.Name IN (@categories) AND 
-                            P.Name LIKE '%@searchParam%'",
-                            parameter.ToArray()
-                ).Select(obj => new InfoProduct
+            List<InfoProduct> products = await _context.Products
+                .Include(prd => prd.ProductCategory)
+                .Where(prd => category == null || category.Select(c => c.ToString()).Contains(prd.ProductCategory.Name ?? string.Empty))
+                .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
+                .Select(obj => new InfoProduct
                 {
                     productName = obj.Name,
                     productId = obj.ProductId,
-                    productPrice = obj.ListPrice
-                }).ToListAsync();
+                    productPrice = obj.ListPrice,
+                    photo = obj.ThumbNailPhoto
+                })
+                .ToListAsync();
 
             return Ok(products);
 
