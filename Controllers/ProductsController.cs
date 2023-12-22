@@ -151,10 +151,37 @@ namespace WebAppPedalaCom.Controllers
             if (_context.Products == null)
                 return Problem("Entity set 'AdventureWorksLt2019Context.Products'  is null.");
 
-            _context.Products.Add(product);
+            Product newProduct = new Product();
+
+            newProduct.ProductId = product.ProductId;
+
+            newProduct.Color = product.Color;
+
+            newProduct.ListPrice = product.ListPrice;
+
+            newProduct.ModifiedDate = DateTime.Now;
+
+            newProduct.Name = product.Name;
+
+            newProduct.ProductCategoryId = product.ProductCategoryId;
+
+            newProduct.ProductNumber = product.ProductNumber;
+
+            newProduct.Size = product.Size;
+
+            newProduct.StandardCost = product.StandardCost;
+
+            newProduct.ThumbNailPhoto = Convert.FromBase64String(product.ThumbnailPhotoFileName.Split(",")[1]);
+
+            newProduct.Weight = product.Weight;
+
+            newProduct.SellStartDate = DateTime.Now;
+
+
+            _context.Products.Add(newProduct);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = product.ProductId }, product);
+            return CreatedAtAction("GetProducts", new { id = newProduct.ProductId }, newProduct);
         }
 
         // DELETE: api/Products/{id}
