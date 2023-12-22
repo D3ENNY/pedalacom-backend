@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Models;
 
@@ -77,6 +76,43 @@ namespace WebAppPedalaCom.Controllers
 
             return Ok(products);
 
+        }
+
+        [HttpGet("info/")]
+        [ActionName("GetInfoProducts")]
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProducts()
+        {
+            if (_context.Products == null)
+                return NotFound();
+
+            Category[] category =
+            {
+                new() { categoryName = "Mountain Bikes"},
+                new() { categoryName = "Road Bikes"},
+                new() { categoryName = "Touring Bikes"}
+
+            };
+
+            List<InfoProduct> products = new();
+
+            category.ToList().ForEach(async cat =>
+            {
+                products.AddRange(
+                    _context.Products
+                    .Include(prd => prd.ProductCategory)
+                    .Where(prd => prd.ProductCategory.Name == cat.ToString())
+                    .Take(2)
+                    .Select(obj => new InfoProduct
+                    {
+                        productName = obj.Name,
+                        productId = obj.ProductId,
+                        productPrice = obj.ListPrice,
+                        photo = obj.ThumbNailPhoto
+                    })
+                    .ToList()
+                );
+            });
+            return Ok(products);
         }
 
         /*      *

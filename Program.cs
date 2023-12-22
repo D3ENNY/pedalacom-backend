@@ -33,7 +33,8 @@ namespace WebAppPedalaCom
                 opt.AddPolicy("BasicAuthentication", new AuthorizationPolicyBuilder("BasicAuthentication").RequireAuthenticatedUser().Build());
             });
 
-            builder.Services.AddCors(opt => // to add for CORS Policy access!
+            // to add for CORS Policy access!
+            builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy("CorsPolicy",
                     builder => builder
