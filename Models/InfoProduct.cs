@@ -6,5 +6,6 @@
         public int productId { get; set; }
         public decimal productPrice { get; set; }
         public byte[]? photo { get; set; }
+        public string productCategory { get; set; }
     }
 }
