@@ -70,7 +70,8 @@ namespace WebAppPedalaCom.Controllers
                     productName = obj.Name,
                     productId = obj.ProductId,
                     productPrice = obj.ListPrice,
-                    photo = obj.ThumbNailPhoto
+                    photo = obj.ThumbNailPhoto,
+                    productCategory = obj.ProductCategory.Name
                 })
                 .ToListAsync();
 
@@ -107,7 +108,8 @@ namespace WebAppPedalaCom.Controllers
                         productName = obj.Name,
                         productId = obj.ProductId,
                         productPrice = obj.ListPrice,
-                        photo = obj.ThumbNailPhoto
+                        photo = obj.ThumbNailPhoto,
+                        productCategory = obj.ProductCategory.Name
                     })
                     .ToList()
                 );
