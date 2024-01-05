@@ -56,12 +56,14 @@ namespace WebAppPedalaCom.Controllers
 
         [HttpPost("info/")]
         [ActionName("GetInfoProductsByCategory")]
-        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "")
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "", int pageNumber = 1)
         {
+            int pageSize = 6;
+
             if (_context.Products == null)
                 return NotFound();
 
-            List<InfoProduct> products = await _context.Products
+            IQueryable<InfoProduct> query = _context.Products
                 .Include(prd => prd.ProductCategory)
                 .Where(prd => category == null || category.Select(c => c.ToString()).Contains(prd.ProductCategory.Name ?? string.Empty))
                 .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
@@ -72,50 +74,30 @@ namespace WebAppPedalaCom.Controllers
                     productPrice = obj.ListPrice,
                     photo = obj.ThumbNailPhoto,
                     productCategory = obj.ProductCategory.Name
-                })
-                .ToListAsync();
+                });
 
-            return Ok(products);
+            var totalItems = await query.CountAsync();
 
-        }
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-        [HttpGet("info/")]
-        [ActionName("GetInfoProducts")]
-        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProducts()
-        {
-            if (_context.Products == null)
-                return NotFound();
-
-            Category[] category =
+            if (pageNumber > totalPages)
             {
-                new() { categoryName = "Mountain Bikes"},
-                new() { categoryName = "Road Bikes"},
-                new() { categoryName = "Touring Bikes"}
+                return NotFound();
+            }
 
+            var products = await query.Skip((pageNumber - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToListAsync();
+            var paginationInfo = new
+            {
+                pageNumber = pageNumber,
+                TotalPages = totalPages
             };
 
-            List<InfoProduct> products = new();
-
-            category.ToList().ForEach(async cat =>
-            {
-                products.AddRange(
-                    _context.Products
-                    .Include(prd => prd.ProductCategory)
-                    .Where(prd => prd.ProductCategory.Name == cat.ToString())
-                    .Take(2)
-                    .Select(obj => new InfoProduct
-                    {
-                        productName = obj.Name,
-                        productId = obj.ProductId,
-                        productPrice = obj.ListPrice,
-                        photo = obj.ThumbNailPhoto,
-                        productCategory = obj.ProductCategory.Name
-                    })
-                    .ToList()
-                );
-            });
-            return Ok(products);
+            return Ok(new { Products = products, PaginationInfo = paginationInfo });
         }
+
+
 
         /*      *
          *      *
