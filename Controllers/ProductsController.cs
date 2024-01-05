@@ -80,6 +80,11 @@ namespace WebAppPedalaCom.Controllers
 
             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
+            if (pageNumber > totalPages && totalPages == 0)
+            {
+                return Ok();
+            }
+
             if (pageNumber > totalPages)
             {
                 return NotFound();
