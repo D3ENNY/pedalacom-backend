@@ -26,12 +26,12 @@ namespace WebAppPedalaCom.Controllers
             if (_context.Products == null)
                 return NotFound();
 
-            return await _context.Products
-                 .Include(prd => prd.ProductModel) // Include Table ProductModel
-                 .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
-                 .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
-                 .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
-                 .ToListAsync();
+            // Execute the stored procedure using raw SQL query
+            var result = await _context.Products
+                .FromSqlRaw("EXECUTE GetTopSellingProductsDetails") // Execute the stored procedure
+                .ToListAsync();
+
+            return result;
         }
 
         // GET: api/Products/{id}
@@ -66,6 +66,51 @@ namespace WebAppPedalaCom.Controllers
             IQueryable<InfoProduct> query = _context.Products
                 .Include(prd => prd.ProductCategory)
                 .Where(prd => category == null || category.Select(c => c.ToString()).Contains(prd.ProductCategory.Name ?? string.Empty))
+                .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
+                .Select(obj => new InfoProduct
+                {
+                    productName = obj.Name,
+                    productId = obj.ProductId,
+                    productPrice = obj.ListPrice,
+                    photo = obj.ThumbNailPhoto,
+                    productCategory = obj.ProductCategory.Name
+                });
+
+            var totalItems = await query.CountAsync();
+
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            if (pageNumber > totalPages && totalPages == 0)
+            {
+                return Ok();
+            }
+
+            if (pageNumber > totalPages)
+            {
+                return NotFound();
+            }
+
+            var products = await query.Skip((pageNumber - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToListAsync();
+            var paginationInfo = new
+            {
+                pageNumber = pageNumber,
+                TotalPages = totalPages
+            };
+
+            return Ok(new { Products = products, PaginationInfo = paginationInfo });
+        }
+
+        [HttpGet("info/")]
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByName(string searchData = "", int pageNumber = 1)
+        {
+            int pageSize = 12;
+
+            if (_context.Products == null)
+                return NotFound();
+
+            IQueryable<InfoProduct> query = _context.Products
                 .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
                 .Select(obj => new InfoProduct
                 {
