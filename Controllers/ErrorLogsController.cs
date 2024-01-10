@@ -31,7 +31,7 @@ namespace WebAppPedalaCom.Controllers
             if (_context.ErrorLogs == null)
             {
                 _errorLogService.LogError(new ArgumentNullException());
-                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+                return StatusCode(500, "Internal Server Error\n_context.ErrorLogs is Null");
             }
             return Ok(await _context.ErrorLogs.ToListAsync());
         }
@@ -43,7 +43,7 @@ namespace WebAppPedalaCom.Controllers
             if (_context.ErrorLogs == null)
             {
                 _errorLogService.LogError(new ArgumentNullException());
-                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+                return StatusCode(500, "Internal Server Error\n_context.ErrorLogs is Null");
             }
 
             var errorLog = await _context.ErrorLogs.FindAsync(id);
