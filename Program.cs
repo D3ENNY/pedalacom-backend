@@ -44,6 +44,7 @@ namespace WebAppPedalaCom
             });
 
             var app = builder.Build();
+
             app.UseCors("CorsPolicy");
 
             // Configure the HTTP request pipeline.

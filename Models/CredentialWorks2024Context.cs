@@ -47,17 +47,16 @@ public partial class CredentialWorks2024Context : DbContext
 
         modelBuilder.Entity<ErrorLog>(entity =>
         {
-            entity.HasKey(e => e.ErrorLogId).HasName("PK__ErrorLog__D65247E2BA20A182");
+            entity.HasKey(e => e.Id).HasName("PK__ErrorLog__D65247E2BA20A182");
 
             entity.ToTable("ErrorLog");
 
-            entity.Property(e => e.ErrorLogId)
-                .ValueGeneratedNever()
-                .HasColumnName("ErrorLogID");
-            entity.Property(e => e.ErrorMessage).HasMaxLength(4000);
-            entity.Property(e => e.ErrorProcedure).HasMaxLength(126);
-            entity.Property(e => e.ErrorTime).HasColumnType("datetime");
-            entity.Property(e => e.UserName).HasMaxLength(128);
+            entity.Property(e => e.Id)
+                .HasColumnName("Id");
+            entity.Property(e => e.Message).HasMaxLength(255);
+            entity.Property(e => e.StackTrace).HasMaxLength(255);
+            entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+            entity.Property(e => e.ErrorCode).HasMaxLength(20);
         });
 
         OnModelCreatingPartial(modelBuilder);

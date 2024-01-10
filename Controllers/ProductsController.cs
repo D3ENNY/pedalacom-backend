@@ -1,16 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 
 namespace WebAppPedalaCom.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController] // to update
+    [ApiController]
     public class ProductsController : ControllerBase
     {
         private readonly AdventureWorksLt2019Context _context;
+        private readonly ErrorLogService _errorLogService;
 
-        public ProductsController(AdventureWorksLt2019Context context) => _context = context;
+        public ProductsController(AdventureWorksLt2019Context context)
+        {
+            this._context = context;
+            CredentialWorks2024Context CWcontext = new();
+            this._errorLogService = new(CWcontext);
+        }
 
         /*      *
          *      *
@@ -23,15 +30,31 @@ namespace WebAppPedalaCom.Controllers
         [ActionName("GetProducts")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
+            List<Product> result = new();
             if (_context.Products == null)
                 return NotFound();
 
-            // Execute the stored procedure using raw SQL query
-            var result = await _context.Products
-                .FromSqlRaw("EXECUTE GetTopSellingProductsDetails") // Execute the stored procedure
-                .ToListAsync();
+            try
+            {
+                 result = await _context.Products
+                    // Execute the stored procedure using raw SQL query
+                    .FromSqlRaw("EXECUTE GetTopSellingProductsDetails")
+                    .ToListAsync();
 
-            return result;
+                throw new Exception("test");
+            }
+            catch (OperationCanceledException ex)
+            {
+                await Console.Out.WriteLineAsync(ex.Source);
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.Source);
+                _errorLogService.LogError(ex);
+                
+            }
+
+            return Ok(result);
         }
 
         // GET: api/Products/{id}
@@ -51,7 +74,8 @@ namespace WebAppPedalaCom.Controllers
 
             if (product == null)
                 return NotFound();
-            return product;
+
+            return Ok(product);
         }
 
         [HttpPost("info/")]

@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace WebAppPedalaCom.Models;
+﻿namespace WebAppPedalaCom.Models;
 
 public partial class ErrorLog
 {
-    public int ErrorLogId { get; set; }
+    public int Id { get; set; }
 
-    public DateTime ErrorTime { get; set; }
+    public DateTime TimeStamp { get; set; }
 
-    public string UserName { get; set; } = null!;
+    public string? ErrorCode { get; set; }
 
-    public int ErrorNumber { get; set; }
+    public string Message { get; set; }
 
-    public string? ErrorProcedure { get; set; }
-
-    public string ErrorMessage { get; set; } = null!;
+    public string StackTrace { get; set; }
 }
