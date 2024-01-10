@@ -32,7 +32,10 @@ namespace WebAppPedalaCom.Controllers
         {
             List<Product> result = new();
             if (_context.Products == null)
-                return NotFound();
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
 
             try
             {
@@ -40,18 +43,14 @@ namespace WebAppPedalaCom.Controllers
                     // Execute the stored procedure using raw SQL query
                     .FromSqlRaw("EXECUTE GetTopSellingProductsDetails")
                     .ToListAsync();
-
-                throw new Exception("test");
             }
             catch (OperationCanceledException ex)
             {
-                await Console.Out.WriteLineAsync(ex.Source);
+                _errorLogService.LogError(ex);
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync(ex.Source);
                 _errorLogService.LogError(ex);
-                
             }
 
             return Ok(result);
@@ -62,15 +61,35 @@ namespace WebAppPedalaCom.Controllers
         [ActionName("GetProductsByID")]
         public async Task<ActionResult<Product>> GetProductsById(int id)
         {
+            Product? product = null;
             if (_context.Products == null)
-                return NotFound();
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
 
-            var product = await _context.Products
-                .Include(prd => prd.ProductModel) // Include Table ProductModel
-                .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
-                .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
-                .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
-                .FirstOrDefaultAsync(prd => prd.ProductId == id);
+            try
+            {
+                 product = await _context.Products
+                    .Include(prd => prd.ProductModel) // Include Table ProductModel
+                    .ThenInclude(mdl => mdl.ProductModelProductDescriptions) // Include Pivot SalesOrderDetails
+                    .ThenInclude(prdMD => prdMD.ProductDescription) // Link with Pivot to ProductDescription
+                    .Include(prd => prd.SalesOrderDetails) // Include Table SalesOrderDetails
+                    .FirstOrDefaultAsync(prd => prd.ProductId == id);
+            }
+            catch (OperationCanceledException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+            catch(NullReferenceException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+
 
             if (product == null)
                 return NotFound();
@@ -84,44 +103,66 @@ namespace WebAppPedalaCom.Controllers
         {
             int pageSize = 6;
 
+            List<InfoProduct>? products = null;
+            object? paginationInfo = null;
+
             if (_context.Products == null)
-                return NotFound();
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
 
-            IQueryable<InfoProduct> query = _context.Products
-                .Include(prd => prd.ProductCategory)
-                .Where(prd => category == null || category.Select(c => c.ToString()).Contains(prd.ProductCategory.Name ?? string.Empty))
-                .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
-                .Select(obj => new InfoProduct
+            try
+            {
+                IQueryable<InfoProduct> query = _context.Products
+                    .Include(prd => prd.ProductCategory)
+                    .Where(prd => category == null || category.Select(c => c.ToString()).Contains(prd.ProductCategory.Name ?? string.Empty))
+                    .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
+                    .Select(obj => new InfoProduct
+                    {
+                        productName = obj.Name,
+                        productId = obj.ProductId,
+                        productPrice = obj.ListPrice,
+                        photo = obj.ThumbNailPhoto,
+                        productCategory = obj.ProductCategory.Name
+                    });
+
+                int totalItems = await query.CountAsync();
+
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                if (pageNumber > totalPages && totalPages == 0)
                 {
-                    productName = obj.Name,
-                    productId = obj.ProductId,
-                    productPrice = obj.ListPrice,
-                    photo = obj.ThumbNailPhoto,
-                    productCategory = obj.ProductCategory.Name
-                });
+                    return Ok();
+                }
 
-            var totalItems = await query.CountAsync();
+                if (pageNumber > totalPages)
+                {
+                    return NotFound();
+                }
 
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            if (pageNumber > totalPages && totalPages == 0)
+                products = await query.Skip((pageNumber - 1) * pageSize)
+                                     .Take(pageSize)
+                                     .ToListAsync();
+                paginationInfo = new
+                {
+                    pageNumber = pageNumber,
+                    TotalPages = totalPages
+                };
+            }
+            catch (OperationCanceledException ex)
             {
-                return Ok();
+                _errorLogService.LogError(ex);
+            }
+            catch (NullReferenceException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.LogError(ex);
             }
 
-            if (pageNumber > totalPages)
-            {
-                return NotFound();
-            }
-
-            var products = await query.Skip((pageNumber - 1) * pageSize)
-                                 .Take(pageSize)
-                                 .ToListAsync();
-            var paginationInfo = new
-            {
-                pageNumber = pageNumber,
-                TotalPages = totalPages
-            };
 
             return Ok(new { Products = products, PaginationInfo = paginationInfo });
         }
@@ -131,10 +172,18 @@ namespace WebAppPedalaCom.Controllers
         {
             int pageSize = 12;
 
-            if (_context.Products == null)
-                return NotFound();
+            List<InfoProduct>? products = null;
+            object? paginationInfo = null;
 
-            IQueryable<InfoProduct> query = _context.Products
+            if (_context.Products == null)
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
+
+            try
+            {
+                IQueryable<InfoProduct> query = _context.Products
                 .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
                 .Select(obj => new InfoProduct
                 {
@@ -145,28 +194,41 @@ namespace WebAppPedalaCom.Controllers
                     productCategory = obj.ProductCategory.Name
                 });
 
-            var totalItems = await query.CountAsync();
+                int totalItems = await query.CountAsync();
 
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-            if (pageNumber > totalPages && totalPages == 0)
-            {
-                return Ok();
+                if (pageNumber > totalPages && totalPages == 0)
+                {
+                    return Ok();
+                }
+
+                if (pageNumber > totalPages)
+                {
+                    return NotFound();
+                }
+
+                products = await query.Skip((pageNumber - 1) * pageSize)
+                                     .Take(pageSize)
+                                     .ToListAsync();
+                paginationInfo = new
+                {
+                    pageNumber = pageNumber,
+                    TotalPages = totalPages
+                };
             }
-
-            if (pageNumber > totalPages)
+            catch (OperationCanceledException ex)
             {
-                return NotFound();
+                _errorLogService.LogError(ex);
             }
-
-            var products = await query.Skip((pageNumber - 1) * pageSize)
-                                 .Take(pageSize)
-                                 .ToListAsync();
-            var paginationInfo = new
+            catch (NullReferenceException ex)
             {
-                pageNumber = pageNumber,
-                TotalPages = totalPages
-            };
+                _errorLogService.LogError(ex);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.LogError(ex);
+            }
 
             return Ok(new { Products = products, PaginationInfo = paginationInfo });
         }
@@ -192,11 +254,12 @@ namespace WebAppPedalaCom.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!ProductExists(id))
                     return NotFound();
-                else throw;
+
+                _errorLogService.LogError(ex);
             }
 
             return NoContent();
@@ -206,56 +269,68 @@ namespace WebAppPedalaCom.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
+            Product newProduct = new()
+            {
+                ProductId = product.ProductId,
+                Color = product.Color,
+                ListPrice = product.ListPrice,
+                ModifiedDate = DateTime.Now,
+                Name = product.Name,
+                ProductCategoryId = product.ProductCategoryId,
+                ProductNumber = product.ProductNumber,
+                Size = product.Size,
+                StandardCost = product.StandardCost,
+                ThumbNailPhoto = Convert.FromBase64String(product.ThumbnailPhotoFileName.Split(",")[1]),
+                Weight = product.Weight,
+                SellStartDate = DateTime.Now,
+            };
+
             if (_context.Products == null)
-                return Problem("Entity set 'AdventureWorksLt2019Context.Products'  is null.");
-
-            Product newProduct = new Product();
-
-            newProduct.ProductId = product.ProductId;
-
-            newProduct.Color = product.Color;
-
-            newProduct.ListPrice = product.ListPrice;
-
-            newProduct.ModifiedDate = DateTime.Now;
-
-            newProduct.Name = product.Name;
-
-            newProduct.ProductCategoryId = product.ProductCategoryId;
-
-            newProduct.ProductNumber = product.ProductNumber;
-
-            newProduct.Size = product.Size;
-
-            newProduct.StandardCost = product.StandardCost;
-
-            newProduct.ThumbNailPhoto = Convert.FromBase64String(product.ThumbnailPhotoFileName.Split(",")[1]);
-
-            newProduct.Weight = product.Weight;
-
-            newProduct.SellStartDate = DateTime.Now;
-
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
 
             _context.Products.Add(newProduct);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
 
             return CreatedAtAction("GetProducts", new { id = newProduct.ProductId }, newProduct);
         }
+
 
         // DELETE: api/Products/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             if (_context.Products == null)
-                return NotFound();
+            {
+                _errorLogService.LogError(new NullReferenceException());
+                return StatusCode(500, "Internal Server Error\n_context.Product is Null");
+            }
 
-            var product = await _context.Products.FindAsync(id);
+            Product product = await _context.Products.FindAsync(id);
 
             if (product == null)
                 return NotFound();
 
             _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
 
             return NoContent();
         }
