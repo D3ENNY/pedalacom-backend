@@ -33,7 +33,7 @@ namespace WebAppPedalaCom.Controllers
             List<Product> result = new();
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
@@ -64,7 +64,7 @@ namespace WebAppPedalaCom.Controllers
             Product? product = null;
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
@@ -108,7 +108,7 @@ namespace WebAppPedalaCom.Controllers
 
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
@@ -177,7 +177,7 @@ namespace WebAppPedalaCom.Controllers
 
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
@@ -287,7 +287,7 @@ namespace WebAppPedalaCom.Controllers
 
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
@@ -312,7 +312,7 @@ namespace WebAppPedalaCom.Controllers
         {
             if (_context.Products == null)
             {
-                _errorLogService.LogError(new NullReferenceException());
+                _errorLogService.LogError(new ArgumentNullException());
                 return StatusCode(500, "Internal Server Error\n_context.Product is Null");
             }
 
