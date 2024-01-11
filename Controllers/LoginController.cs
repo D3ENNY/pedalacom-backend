@@ -24,7 +24,6 @@ namespace WebAppPedalaCom.Controllers
         }
 
         [BasicAutorizationAttributes]
-
         [HttpPost]
         public IActionResult Auth(User user)
         {
@@ -47,13 +46,12 @@ namespace WebAppPedalaCom.Controllers
                         utente.FirstName,
                         utente.CustomerId
                     });
-                return BadRequest("wrongPassword");
-
+                return BadRequest("wrong password");
             }
             return NotFound("user not found");
         }
 
-        private string PasswordHash(User user, string sale)
+        private static string PasswordHash(User user, string sale)
         {
             byte[] EncResult =
                 KeyDerivation.Pbkdf2(
