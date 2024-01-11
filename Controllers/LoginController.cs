@@ -36,7 +36,10 @@ namespace WebAppPedalaCom.Controllers
 
             if (fullUser != null)
             {
-                string passwordHashed = PasswordHash(user, fullUser.PasswordSalt ?? "");
+                string? passwordHashed = PasswordHash(user, fullUser.PasswordSalt ?? "");
+
+                if (passwordHashed == null)
+                    return StatusCode(500, "Internal Server Error\npassword hashed is Null");
 
                 CwCustomer? utente = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email and PasswordHash = @password", new SqlParameter("@email", user.EmailAddress), new SqlParameter("@password", passwordHashed)).SingleOrDefault();
 
@@ -51,18 +54,30 @@ namespace WebAppPedalaCom.Controllers
             return NotFound("user not found");
         }
 
-        private static string PasswordHash(User user, string sale)
+        private string? PasswordHash(User user, string sale)
         {
-            byte[] EncResult =
-                KeyDerivation.Pbkdf2(
-                    password: user.PasswordHash,
-                    salt: Convert.FromBase64String(sale),
-                    prf: KeyDerivationPrf.HMACSHA256,
-                    iterationCount: 10000,
-                    numBytesRequested: 132
-                );
+            try
+            {
+                byte[] EncResult =
+                    KeyDerivation.Pbkdf2(
+                        password: user.PasswordHash,
+                        salt: Convert.FromBase64String(sale),
+                        prf: KeyDerivationPrf.HMACSHA256,
+                        iterationCount: 10000,
+                        numBytesRequested: 132
+                    );
 
-            return Convert.ToBase64String(EncResult);
+                return Convert.ToBase64String(EncResult);
+            }
+            catch(ArgumentException ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+            catch(Exception ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+            return null;
         }
     }
 
