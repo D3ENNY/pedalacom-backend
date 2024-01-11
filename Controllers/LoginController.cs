@@ -75,4 +75,3 @@ namespace WebAppPedalaCom.Controllers
         public string PasswordHash { get; set; }
     }
 }
-
