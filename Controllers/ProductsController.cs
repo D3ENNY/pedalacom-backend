@@ -242,9 +242,83 @@ namespace WebAppPedalaCom.Controllers
          *      */
 
         // PUT: api/Products/{id}
+
+
+        /*
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
+
+            string[] arr = product.ThumbnailPhotoFileName.Split(",");
+            
+            if(arr.Length == 2)
+            {
+                product.ThumbnailPhotoFileName = arr[1];
+            }
+            else
+            {
+                product.ThumbnailPhotoFileName = arr[0];
+            }
+            
+
+            Product newProduct = new()
+            {
+                ProductId = product.ProductId,
+                Color = product.Color,
+                ListPrice = product.ListPrice,
+                ModifiedDate = DateTime.Now,
+                Name = product.Name,
+                ProductCategoryId = product.ProductCategoryId,
+                ProductNumber = product.ProductNumber,
+                Size = product.Size,
+                StandardCost = product.StandardCost,
+                ThumbNailPhoto = Convert.FromBase64String(product.ThumbnailPhotoFileName),
+                Weight = product.Weight,
+                SellStartDate = DateTime.Now,
+            };
+
+           
+            _context.Entry(newProduct).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                if (!ProductExists(id))
+                    return NotFound();
+
+                _errorLogService.LogError(ex);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.LogError(ex);
+            }
+
+            return NoContent();
+        }
+            */
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProduct(int id, Product product)
+        {
+
+            string[] arr = product.ThumbnailPhotoFileName.Split(",");
+
+            if (arr.Length == 2)
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(arr[1]);
+                product.ThumbNailPhoto = bytes;
+            }
+            else
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(arr[0]);
+                product.ThumbNailPhoto = bytes;
+            }
+
+            //await Console.Error.WriteLineAsync(product.ThumbnailPhotoFileName);
+            
             if (id != product.ProductId)
                 return BadRequest();
 
@@ -261,10 +335,16 @@ namespace WebAppPedalaCom.Controllers
 
                 _errorLogService.LogError(ex);
             }
+            catch (Exception ex)
+            {
+                _errorLogService.LogError(ex);
+                await Console.Error.WriteLineAsync(ex.StackTrace);
+            }
 
             return NoContent();
         }
 
+        
         // POST: api/Products
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
@@ -304,7 +384,7 @@ namespace WebAppPedalaCom.Controllers
 
             return CreatedAtAction("GetProducts", new { id = newProduct.ProductId }, newProduct);
         }
-
+        
 
         // DELETE: api/Products/{id}
         [HttpDelete("{id}")]
