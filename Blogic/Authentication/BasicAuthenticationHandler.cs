@@ -54,7 +54,7 @@ namespace WebAppTestEmployees.Blogic.Authentication
 
                 string username = authorizationSplit[0];
 
-                AuthenticationUser authenticationUser = new AuthenticationUser(username, "BasicAuthentication", true);
+                AuthenticationUser authenticationUser = new(username, "BasicAuthentication", true);
 
                 claims = new(new ClaimsIdentity(authenticationUser));
             }
