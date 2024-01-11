@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 using WebAppTestEmployees.Blogic.Authentication;
+using static WebAppPedalaCom.Controllers.LoginController;
 
 namespace WebAppPedalaCom.Controllers
 {
@@ -14,69 +15,57 @@ namespace WebAppPedalaCom.Controllers
     {
         private readonly AdventureWorksLt2019Context _AWcontext;
         private readonly ErrorLogService _errorLogService;
+        private readonly CredentialWorks2024Context _CWcontext;
         public LoginController(AdventureWorksLt2019Context context)
-        { 
+        {
             this._AWcontext = context;
-            CredentialWorks2024Context CWcontext = new();
-            this._errorLogService = new(CWcontext);
+            this._CWcontext = new();
+            this._errorLogService = new(_CWcontext);
         }
 
         [BasicAutorizationAttributes]
+
         [HttpPost]
         public IActionResult Auth(User user)
         {
-            Customer userExistOldDB = _AWcontext.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).FirstOrDefault();
+            Customer? userExistOldDB = _AWcontext.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).FirstOrDefault();
+
             if (userExistOldDB != null)
+                return Conflict("user already exist");
+
+            CwCustomer? fullUser = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).SingleOrDefault();
+
+            if (fullUser != null)
             {
-                return BadRequest("OldUser");
-            }
+                string passwordHashed = PasswordHash(user, fullUser.PasswordSalt ?? "");
 
+                CwCustomer? utente = _CWcontext.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email and PasswordHash = @password", new SqlParameter("@email", user.EmailAddress), new SqlParameter("@password", passwordHashed)).SingleOrDefault();
 
-            using (var authorizationDB = new CredentialWorks2024Context())
-            {
-
-                var fullUser = authorizationDB.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).SingleOrDefault();
-
-                if(fullUser != null)
-                {
-                    string sale = fullUser.PasswordSalt;
-
-                    byte[] saleSaltato = Convert.FromBase64String(sale);
-
-                    byte[] EncResult =
-                    KeyDerivation.Pbkdf2(
-                        password: user.PasswordHash,
-                        salt: saleSaltato,
-                        prf: KeyDerivationPrf.HMACSHA256,
-                        iterationCount: 10000,
-                        numBytesRequested: 132
-                    );
-
-                    string PasswordHashed = Convert.ToBase64String(EncResult );
-
-                    var utente = authorizationDB.CwCustomers.FromSqlRaw($"select * from [dbo].[CwCustomer] where EmailAddress = @email and PasswordHash = @password", new SqlParameter("@email", user.EmailAddress), new SqlParameter("@password", PasswordHashed)).SingleOrDefault();
-
-                    if( utente != null)
+                if (utente != null)
+                    return Ok(new
                     {
-                        
-                        return Ok(new
-                        {
-                            utente.FirstName, utente.CustomerId 
-                        });
-                    }
-                    else
-                    {
-                        return BadRequest("wrongPassword");
-                    }
-                }
-                else
-                {
-                   return BadRequest("userNotFound");
-                }
-
+                        utente.FirstName,
+                        utente.CustomerId
+                    });
+                return BadRequest("wrongPassword");
 
             }
-         }
+            return NotFound("user not found");
+        }
+
+        private string PasswordHash(User user, string sale)
+        {
+            byte[] EncResult =
+                KeyDerivation.Pbkdf2(
+                    password: user.PasswordHash,
+                    salt: Convert.FromBase64String(sale),
+                    prf: KeyDerivationPrf.HMACSHA256,
+                    iterationCount: 10000,
+                    numBytesRequested: 132
+                );
+
+            return Convert.ToBase64String(EncResult);
+        }
     }
 
     public class User
