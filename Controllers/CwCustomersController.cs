@@ -18,8 +18,7 @@ namespace WebAppPedalaCom.Controllers
         public CwCustomersController(CredentialWorks2024Context _context)
         {
             this._CWcontext = _context;
-            CredentialWorks2024Context CWcontext = new();
-            this._errorLogService = new(CWcontext);
+            this._errorLogService = new(_CWcontext);
         }
 
         // GET: api/CwCustomers
