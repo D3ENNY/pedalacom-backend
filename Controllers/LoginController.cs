@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 using WebAppTestEmployees.Blogic.Authentication;
-using static WebAppPedalaCom.Controllers.LoginController;
 
 namespace WebAppPedalaCom.Controllers
 {
@@ -83,8 +82,8 @@ namespace WebAppPedalaCom.Controllers
 
     public class User
     {
-        public string EmailAddress { get; set; }
+        public string? EmailAddress { get; set; }
 
-        public string PasswordHash { get; set; }
+        public string? PasswordHash { get; set; }
     }
 }
