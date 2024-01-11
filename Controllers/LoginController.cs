@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 using WebAppTestEmployees.Blogic.Authentication;
 
@@ -11,13 +12,19 @@ namespace WebAppPedalaCom.Controllers
     [Route("[controller]")]
     public class LoginController : ControllerBase
     {
-        [BasicAutorizationAttributes]
+        private readonly AdventureWorksLt2019Context _AWcontext;
+        private readonly ErrorLogService _errorLogService;
+        public LoginController(AdventureWorksLt2019Context context)
+        { 
+            this._AWcontext = context;
+            CredentialWorks2024Context CWcontext = new();
+            this._errorLogService = new(CWcontext);
+        }
 
+        [BasicAutorizationAttributes]
         [HttpPost]
         public IActionResult Auth(User user)
         {
-            
-            using AdventureWorksLt2019Context _AWcontext = new();
             Customer userExistOldDB = _AWcontext.Customers.FromSqlRaw($"select * from [SalesLT].[Customer] where EmailAddress = @email", new SqlParameter("@email", user.EmailAddress)).FirstOrDefault();
             if (userExistOldDB != null)
             {
