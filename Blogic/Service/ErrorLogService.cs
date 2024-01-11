@@ -20,7 +20,7 @@ namespace WebAppPedalaCom.Blogic.Service
             _credentialWorks2024Context.ErrorLogs.Add(new ErrorLog()
             {
                 TimeStamp = DateTime.Now,
-                ErrorCode = ex.GetType().Name,
+                ErrorCode = ex.HResult.ToString(),
                 Message = ex.Message,
                 StackTrace = ex.StackTrace
             });

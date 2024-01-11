@@ -43,6 +43,7 @@ namespace WebAppPedalaCom.Controllers
                     // Execute the stored procedure using raw SQL query
                     .FromSqlRaw("EXECUTE GetTopSellingProductsDetails")
                     .ToListAsync();
+                throw new Exception("test");
             }
             catch (OperationCanceledException ex)
             {
