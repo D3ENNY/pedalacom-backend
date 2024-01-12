@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 
@@ -168,11 +169,11 @@ namespace WebAppPedalaCom.Controllers
         }
 
         [HttpGet("info/")]
-        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByName(string searchData = "", int pageNumber = 1)
+        public async Task<ActionResult<IEnumerable<object>>> GetInfoProductsByName(string searchData = "", int pageNumber = 1)
         {
             int pageSize = 12;
 
-            List<InfoProduct>? products = null;
+            List<object>? products = null;
             object? paginationInfo = null;
 
             if (_context.Products == null)
@@ -183,15 +184,16 @@ namespace WebAppPedalaCom.Controllers
 
             try
             {
-                IQueryable<InfoProduct> query = _context.Products
+                IQueryable<object> query = _context.Products
                 .Where(prd => EF.Functions.Like(prd.Name, $"%{searchData}%"))
-                .Select(obj => new InfoProduct
+                .Select(obj => new
                 {
                     productName = obj.Name,
                     productId = obj.ProductId,
                     productPrice = obj.ListPrice,
                     photo = obj.ThumbNailPhoto,
-                    productCategory = obj.ProductCategory.Name
+                    productCategory = obj.ProductCategory.Name,
+                    productCode = obj.ProductNumber
                 });
 
                 int totalItems = await query.CountAsync();
@@ -199,14 +201,10 @@ namespace WebAppPedalaCom.Controllers
                 int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
                 if (pageNumber > totalPages && totalPages == 0)
-                {
                     return Ok();
-                }
 
                 if (pageNumber > totalPages)
-                {
                     return NotFound();
-                }
 
                 products = await query.Skip((pageNumber - 1) * pageSize)
                                      .Take(pageSize)
@@ -306,18 +304,7 @@ namespace WebAppPedalaCom.Controllers
 
             string[] arr = product.ThumbnailPhotoFileName.Split(",");
 
-            if (arr.Length == 2)
-            {
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(arr[1]);
-                product.ThumbNailPhoto = bytes;
-            }
-            else
-            {
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(arr[0]);
-                product.ThumbNailPhoto = bytes;
-            }
-
-            //await Console.Error.WriteLineAsync(product.ThumbnailPhotoFileName);
+            product.ThumbNailPhoto = arr.Length == 2 ? Encoding.UTF8.GetBytes(arr[1]) : Encoding.UTF8.GetBytes(arr[0]);
             
             if (id != product.ProductId)
                 return BadRequest();
