@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
 
@@ -304,12 +303,28 @@ namespace WebAppPedalaCom.Controllers
 
             string[] arr = product.ThumbnailPhotoFileName.Split(",");
 
-            product.ThumbNailPhoto = arr.Length == 2 ? Encoding.UTF8.GetBytes(arr[1]) : Encoding.UTF8.GetBytes(arr[0]);
-            
+            Product newProduct = new()
+            {
+                ProductId = product.ProductId,
+                Color = product.Color,
+                ListPrice = product.ListPrice,
+                ModifiedDate = DateTime.Now,
+                Name = product.Name,
+                ProductCategoryId = product.ProductCategoryId,
+                ProductNumber = product.ProductNumber,
+                Size = product.Size,
+                StandardCost = product.StandardCost,
+                ThumbNailPhoto = arr.Length == 2 ? Convert.FromBase64String(arr[1]) : Convert.FromBase64String(arr[0]),
+                Weight = product.Weight,
+                SellStartDate = DateTime.Now,
+                Rowguid = Guid.NewGuid()
+            };
+
+
             if (id != product.ProductId)
                 return BadRequest();
 
-            _context.Entry(product).State = EntityState.Modified;
+            _context.Entry(newProduct).State = EntityState.Modified;
 
             try
             {
@@ -341,7 +356,7 @@ namespace WebAppPedalaCom.Controllers
                 ProductId = product.ProductId,
                 Color = product.Color,
                 ListPrice = product.ListPrice,
-                ModifiedDate = DateTime.Now,
+                ModifiedDate = DateTime.Now, 
                 Name = product.Name,
                 ProductCategoryId = product.ProductCategoryId,
                 ProductNumber = product.ProductNumber,
@@ -350,6 +365,7 @@ namespace WebAppPedalaCom.Controllers
                 ThumbNailPhoto = Convert.FromBase64String(product.ThumbnailPhotoFileName.Split(",")[1]),
                 Weight = product.Weight,
                 SellStartDate = DateTime.Now,
+                Rowguid = Guid.NewGuid()
             };
 
             if (_context.Products == null)

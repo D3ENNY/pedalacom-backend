@@ -275,7 +275,7 @@ public partial class AdventureWorksLt2019Context : DbContext
                 .HasMaxLength(25)
                 .HasComment("Unique product identification number.");
             entity.Property(e => e.Rowguid)
-                .HasDefaultValueSql("(newid())")
+                .HasDefaultValueSql("newid()")
                 .HasComment("ROWGUIDCOL number uniquely identifying the record. Used to support a merge replication sample.")
                 .HasColumnName("rowguid");
             entity.Property(e => e.SellEndDate)

@@ -48,9 +48,9 @@ namespace WebAppTestEmployees.Blogic.Authentication
                 if (authorizationSplit.Length != 2)
                     return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
 
-                if (!_CWcontext.CwCustomers.Any(c => c.EmailAddress == authorizationSplit[0]) ||
-                   !_AWcontext.Customers.Any(c => c.EmailAddress == authorizationSplit[0]))
-                    return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
+                //if (!_CWcontext.CwCustomers.Any(c => c.EmailAddress == authorizationSplit[0]) ||
+                //   !_AWcontext.Customers.Any(c => c.EmailAddress == authorizationSplit[0]))
+                //    return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
 
                 string username = authorizationSplit[0];
 
