@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -50,7 +52,7 @@ namespace WebAppTestEmployees.Blogic.Authentication
 
                 //if (!_CWcontext.CwCustomers.Any(c => c.EmailAddress == authorizationSplit[0]) &&
                 //   !_AWcontext.Customers.Any(c => c.EmailAddress == authorizationSplit[0]))
-                //    return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
+                //    return Task.FromResult(AuthenticateResult.Fail("User not found")).Result.Properties.Items["ContentResult"] = "User not found";
 
                 string username = authorizationSplit[0];
 
@@ -73,5 +75,7 @@ namespace WebAppTestEmployees.Blogic.Authentication
 
             return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(claims ?? new(), "BasicAuthentication")));
         }
+
+        public IActionResult Unauthorized(string errorString) => new ContentResult() { Content = errorString, StatusCode = (int) HttpStatusCode.Unauthorized};
     }
 }

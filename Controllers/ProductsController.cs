@@ -242,32 +242,51 @@ namespace WebAppPedalaCom.Controllers
          *      */
 
         // PUT: api/Products/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        [HttpPut("{productId}, {descriptionId}")]
+        public async Task<IActionResult> PutProduct(int productId,int descriptionId, [FromBody] PutProductRequest request)
         {
+            if (productId != request.product.ProductId)
+                return BadRequest();
 
-            string[] arr = product.ThumbnailPhotoFileName.Split(",");
-
+            //product management
+            string[] arr = request.product.ThumbnailPhotoFileName.Split(",");
             Product newProduct = new()
             {
-                ProductId = product.ProductId,
-                Color = product.Color,
-                ListPrice = product.ListPrice,
+                ProductId = request.product.ProductId,
+                Color = request.product.Color,
+                ListPrice = request.product.ListPrice,
                 ModifiedDate = DateTime.Now,
-                Name = product.Name,
-                ProductCategoryId = product.ProductCategoryId,
-                ProductNumber = product.ProductNumber,
-                Size = product.Size,
-                StandardCost = product.StandardCost,
+                Name = request.product.Name,
+                ProductCategoryId = request.product.ProductCategoryId,
+                ProductNumber = request.product.ProductNumber,
+                Size = request.product.Size,
+                StandardCost = request.product.StandardCost,
                 ThumbNailPhoto = arr.Length == 2 ? Convert.FromBase64String(arr[1]) : Convert.FromBase64String(arr[0]),
-                Weight = product.Weight,
+                Weight = request.product.Weight,
                 SellStartDate = DateTime.Now,
                 Rowguid = Guid.NewGuid()
             };
 
+            //model management
+            if (_context.ProductModels.Any(mod => mod.ProductModelId == request.product.ProductModelId))
+            {
+                ProductModel? model = _context.ProductModels.Where(mod => mod.ProductModelId == request.product.ProductModelId).FirstOrDefault();
+                if (model != null && model.Name != request.model)
+                    model.Name = request.model;
+            }
+            else
+                return NotFound("model id invalid");
 
-            if (id != product.ProductId)
-                return BadRequest();
+            //description management
+            if (_context.ProductDescriptions.Any(desc => desc.ProductDescriptionId == descriptionId))
+            {
+                ProductDescription? description = _context.ProductDescriptions.Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
+                if (description != null && description.Description != request.description)
+                    description.Description = request.description;
+            }
+            else
+                return NotFound("description id invalid");
+
 
             _context.Entry(newProduct).State = EntityState.Modified;
 
@@ -277,15 +296,14 @@ namespace WebAppPedalaCom.Controllers
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                if (!ProductExists(id))
-                    return NotFound();
+                if (!ProductExists(request.product.ProductId))
+                    return NotFound("product not found");
 
                 _errorLogService.LogError(ex);
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
-                await Console.Error.WriteLineAsync(ex.StackTrace);
             }
 
             return NoContent();
