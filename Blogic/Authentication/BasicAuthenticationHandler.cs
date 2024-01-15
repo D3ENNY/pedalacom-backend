@@ -49,16 +49,9 @@ namespace WebAppTestEmployees.Blogic.Authentication
 
                 if (authorizationSplit.Length != 2)
                     return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
-
-<<<<<<< HEAD
-                if (!_CWcontext.CwCustomers.Any(c => c.EmailAddress == authorizationSplit[0]) &&
-                   !_AWcontext.Customers.Any(c => c.EmailAddress == authorizationSplit[0]))
-                    return Task.FromResult(AuthenticateResult.Fail("Autorizzazione non valida: Impossibile accedere al servizio"));
-=======
                 //if (!_CWcontext.CwCustomers.Any(c => c.EmailAddress == authorizationSplit[0]) &&
                 //   !_AWcontext.Customers.Any(c => c.EmailAddress == authorizationSplit[0]))
-                //    return Task.FromResult(AuthenticateResult.Fail("User not found")).Result.Properties.Items["ContentResult"] = "User not found";
->>>>>>> cbf6d4ccad1779cefd19fc2e314a5ece4160a71b
+                //    return Task.FromResult(AuthenticateResult.Fail("User not found")).Result.Properties.Items["ContentResult"] = "User not found";         
 
                 string username = authorizationSplit[0];
 
