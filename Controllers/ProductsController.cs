@@ -386,6 +386,7 @@ namespace WebAppPedalaCom.Controllers
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
+                    transaction.RollbackAsync();
                     _errorLogService.LogError(ex);
                     await Console.Error.WriteLineAsync("error -> " + ex.Message);
                 }
