@@ -1,6 +1,6 @@
 ﻿namespace WebAppPedalaCom.Models;
 
-public partial class ErrorLog
+public class ErrorLog
 {
     public int Id { get; set; }
 
