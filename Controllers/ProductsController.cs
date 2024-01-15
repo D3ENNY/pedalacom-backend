@@ -102,8 +102,9 @@ namespace WebAppPedalaCom.Controllers
 
         [HttpPost("info/")]
         [ActionName("GetInfoProductsByCategory")]
-        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "", int pageNumber = 1)
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "", int pageNumber = 1, string order = "highlight")
         {
+            
             int pageSize = 6;
 
             List<InfoProduct>? products = null;
@@ -143,10 +144,41 @@ namespace WebAppPedalaCom.Controllers
                 {
                     return NotFound();
                 }
+                
+                switch (order)
+                {
+                    case "In Evidenza":
+                        {
+                            break;
+                        }
+                    case "Prezzo: In ordine crescente":
+                        {
+                            Console.Error.WriteLineAsync(order);
+                            query = query.OrderByDescending(x => x.productPrice);
+                            break;
+                        }
+                    case "Prezzo: In ordine decrescente":
+                        {
+                            query = query.OrderBy(x => x.productPrice);
+                            break;
+                        }
+                    case "Nome: In ordine crescente":
+                        {
+                            query = query.OrderBy(x => x.productName);
+                            break;
+                        }
+                    case "Nome: In ordine decrescente":
+                        {
+                            query = query.OrderByDescending(x => x.productName);
+                            break;
+                        }
+                }
 
                 products = await query.Skip((pageNumber - 1) * pageSize)
                                      .Take(pageSize)
                                      .ToListAsync();
+
+
                 paginationInfo = new
                 {
                     pageNumber = pageNumber,
