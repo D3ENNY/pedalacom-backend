@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Newtonsoft.Json;
 using System.Text.Json;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
@@ -107,7 +106,7 @@ namespace WebAppPedalaCom.Controllers
 
         [HttpPost("info/")]
         [ActionName("GetInfoProductsByCategory")]
-        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "", int pageNumber = 1, string order = "highlight")
+        public async Task<ActionResult<IEnumerable<InfoProduct>>> GetInfoProductsByCategory([FromBody] Category[]? category = null, string searchData = "", int pageNumber = 1, string order = "highlight" )
         {
             
             int pageSize = 6;
@@ -286,7 +285,7 @@ namespace WebAppPedalaCom.Controllers
 
         // PUT: api/Products/{productId}, {descriptionId}
         [HttpPut("{productId}, {descriptionId}")]
-        public async Task<IActionResult> PutProduct(int productId,int descriptionId, [FromBody] PutProductRequest request)
+        public async Task<IActionResult> PutProduct(int productId, [FromBody] PutProductRequest request, int descriptionId = 0)
         {
 
             Product? newProduct = null;
@@ -515,7 +514,7 @@ namespace WebAppPedalaCom.Controllers
 
 /*
     EXAMPLE PUT PRODUCT
-
+    https://localhost:7150/api/Products/675, 564
 {
   "model": "string",
   "description": "string",
@@ -535,7 +534,6 @@ namespace WebAppPedalaCom.Controllers
     "sellEndDate": "2024-01-15T13:08:28.142Z",
     "discontinuedDate": "2024-01-15T13:08:28.142Z",
     "ThumbnailPhotoFileName" : "la nostra foto"
-
   }
 }
  
