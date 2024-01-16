@@ -371,19 +371,16 @@ namespace WebAppPedalaCom.Controllers
                     return NotFound("product not found");
 
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (ArgumentNullException ex)
             {
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
