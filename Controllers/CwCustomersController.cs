@@ -153,7 +153,7 @@ namespace WebAppPedalaCom.Controllers
             }
 
             if (userExistNewDB != null)
-                return Conflict();
+                return Conflict("alreadyRegister");
             else
             {
                 try
