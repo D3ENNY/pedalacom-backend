@@ -50,11 +50,12 @@ namespace WebAppPedalaCom.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Cart>> PostCart(int customerId, int productId, int quantity)
+        public async Task<ActionResult<Cart>> PostCart(PostCartRequest cart)
         {
-            SqlParameter customerIdParameter = new("@customerId", customerId);
-            SqlParameter productIdParameter = new("@productId", productId);
-            SqlParameter quantityParameter = new("@quantity", quantity);
+
+            SqlParameter customerIdParameter = new("@customerId", cart.CustomerId);
+            SqlParameter productIdParameter = new("@productId", cart.ProductId);
+            SqlParameter quantityParameter = new("@quantity", cart.Quantity);
 
             _context.Database.ExecuteSqlRaw($"\r\ndeclare @id int\r\nselect distinct @id = customer_id from [dbo].[carts] as cart\r\njoin [SalesLT].[Customer] as customer on cart.customer_id = customer.CustomerID\r\nwhere FK_Customer_id = {customerIdParameter.ParameterName}\r\n\r\nselect @id\r\n\r\nINSERT INTO [dbo].[carts]\r\n           ([customer_id]\r\n           ,[product_id]\r\n           ,[quantity])\r\n     VALUES\r\n           (@id\r\n           ,{productIdParameter.ParameterName},\r\n           {quantityParameter.ParameterName})", customerIdParameter, productIdParameter, quantityParameter);
             await _context.SaveChangesAsync();
