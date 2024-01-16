@@ -19,7 +19,8 @@ namespace WebAppPedalaCom
             // Add services to the container.
             builder.Services.AddControllers().AddJsonOptions(opt => opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection2019")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection2019")
+            ));
             builder.Services.AddDbContext<CredentialWorks2024Context>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection2024")));
 

@@ -50,10 +50,12 @@ namespace WebAppPedalaCom.Controllers
             catch (OperationCanceledException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
             return Ok(result);
@@ -83,14 +85,17 @@ namespace WebAppPedalaCom.Controllers
             catch (OperationCanceledException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch(NullReferenceException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
 
@@ -156,14 +161,17 @@ namespace WebAppPedalaCom.Controllers
             catch (OperationCanceledException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (NullReferenceException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
 
@@ -220,14 +228,17 @@ namespace WebAppPedalaCom.Controllers
             catch (OperationCanceledException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (NullReferenceException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
             return Ok(new { Products = products, PaginationInfo = paginationInfo });
@@ -241,57 +252,85 @@ namespace WebAppPedalaCom.Controllers
          *      *
          *      */
 
-        // PUT: api/Products/{id}
+        // PUT: api/Products/{productId}, {descriptionId}
         [HttpPut("{productId}, {descriptionId}")]
         public async Task<IActionResult> PutProduct(int productId,int descriptionId, [FromBody] PutProductRequest request)
         {
+
+            Product? newProduct = null;
+            ProductModel? newModel = null;
+            ProductDescription? newDesc = null;
+
             if (productId != request.product.ProductId)
-                return BadRequest();
+                return BadRequest("productId and product.productId doesn't have the same value");
 
-            //product management
-            string[] arr = request.product.ThumbnailPhotoFileName.Split(",");
-            Product newProduct = new()
-            {
-                ProductId = request.product.ProductId,
-                Color = request.product.Color,
-                ListPrice = request.product.ListPrice,
-                ModifiedDate = DateTime.Now,
-                Name = request.product.Name,
-                ProductCategoryId = request.product.ProductCategoryId,
-                ProductNumber = request.product.ProductNumber,
-                Size = request.product.Size,
-                StandardCost = request.product.StandardCost,
-                ThumbNailPhoto = arr.Length == 2 ? Convert.FromBase64String(arr[1]) : Convert.FromBase64String(arr[0]),
-                Weight = request.product.Weight,
-                SellStartDate = DateTime.Now,
-                Rowguid = Guid.NewGuid()
-            };
-
-            //model management
-            if (_context.ProductModels.Any(mod => mod.ProductModelId == request.product.ProductModelId))
-            {
-                ProductModel? model = _context.ProductModels.Where(mod => mod.ProductModelId == request.product.ProductModelId).FirstOrDefault();
-                if (model != null && model.Name != request.model)
-                    model.Name = request.model;
-            }
-            else
-                return NotFound("model id invalid");
-
-            //description management
-            if (_context.ProductDescriptions.Any(desc => desc.ProductDescriptionId == descriptionId))
-            {
-                ProductDescription? description = _context.ProductDescriptions.Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
-                if (description != null && description.Description != request.description)
-                    description.Description = request.description;
-            }
-            else
-                return NotFound("description id invalid");
-
-
-            _context.Entry(newProduct).State = EntityState.Modified;
 
             try
             {
+                //product management
+                if (_context.Products.AsNoTracking().Any(prd => prd.ProductId == productId))
+                {
+                    string[]? arr = request.product.ThumbnailPhotoFileName?.Split(",");
+                    if (arr.Length > 0)
+                        newProduct = new()
+                        {
+                            ProductId = request.product.ProductId,
+                            Color = request.product.Color,
+                            ListPrice = request.product.ListPrice,
+                            ModifiedDate = DateTime.Now,
+                            Name = request.product.Name,
+                            ProductCategoryId = request.product.ProductCategoryId,
+                            ProductNumber = request.product.ProductNumber,
+                            Size = request.product.Size,
+                            StandardCost = request.product.StandardCost,
+                            ThumbNailPhoto = arr.Length == 2 ? Convert.FromBase64String(arr[1]) : Convert.FromBase64String(arr[0]),
+                            Weight = request.product.Weight,
+                            SellStartDate = DateTime.Now,
+                            Rowguid = Guid.NewGuid()
+                        };
+                    else return BadRequest("ThumbnailPhotoFileName is ");
+                }
+                else return NotFound("product not found");
+
+                //model management
+                if (_context.ProductModels.AsNoTracking().Any(mod => mod.ProductModelId == request.product.ProductModelId))
+                {
+                    ProductModel? model = _context.ProductModels.AsNoTracking().Where(mod => mod.ProductModelId == request.product.ProductModelId).FirstOrDefault();
+                    if (model != null && model.Name != request.model)
+                        newModel = new ProductModel
+                        {
+                            ProductModelId = model.ProductModelId,
+                            Name = request.model,
+                            CatalogDescription = model.CatalogDescription,
+                            Rowguid = Guid.NewGuid(),
+                            ModifiedDate = DateTime.Now,
+                            ProductModelProductDescriptions = model.ProductModelProductDescriptions,
+                            Products = model.Products
+                        };
+                }
+                else return NotFound("model id invalid");
+
+                //description management
+                if (_context.ProductDescriptions.AsNoTracking().Any(desc => desc.ProductDescriptionId == descriptionId))
+                {
+                    ProductDescription? description = _context.ProductDescriptions.AsNoTracking().Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
+                    if (description != null && description.Description != request.description)
+                        newDesc = new ProductDescription
+                        {
+                            ProductDescriptionId = description.ProductDescriptionId,
+                            Description = request.description,
+                            Rowguid = Guid.NewGuid(),
+                            ModifiedDate = DateTime.Now,
+                            ProductModelProductDescriptions = description.ProductModelProductDescriptions,
+                        };
+                }
+                else return NotFound("description id invalid");
+
+
+                _context.Entry(newProduct).State = EntityState.Modified;
+                _context.Entry(newModel).State = EntityState.Modified;
+                _context.Entry(newDesc).State = EntityState.Modified;
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException ex)
@@ -300,10 +339,20 @@ namespace WebAppPedalaCom.Controllers
                     return NotFound("product not found");
 
                 _errorLogService.LogError(ex);
+                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
+            }
+            catch (ArgumentNullException ex)
+            {
+                _errorLogService.LogError(ex);
+                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
+                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
             return NoContent();
@@ -324,7 +373,7 @@ namespace WebAppPedalaCom.Controllers
             }
 
             if (data == null || data.Count < 2)
-                return StatusCode(500, "Internal Server Error\n dara is Null");
+                return StatusCode(500, "Internal Server Error\n data is Null");
 
             if (data[0] is JsonElement jsonElement && data[1] is JsonElement array)
             {
@@ -388,7 +437,7 @@ namespace WebAppPedalaCom.Controllers
                 {
                     transaction.RollbackAsync();
                     _errorLogService.LogError(ex);
-                    await Console.Error.WriteLineAsync("error -> " + ex.Message);
+                    return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 }
             }
             
@@ -421,6 +470,7 @@ namespace WebAppPedalaCom.Controllers
             catch (DbUpdateConcurrencyException ex)
             {
                 _errorLogService.LogError(ex);
+                return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
             return NoContent();
