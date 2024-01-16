@@ -371,19 +371,16 @@ namespace WebAppPedalaCom.Controllers
                     return NotFound("product not found");
 
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (ArgumentNullException ex)
             {
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 _errorLogService.LogError(ex);
-                Console.Out.WriteLineAsync($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
             }
 
@@ -512,3 +509,35 @@ namespace WebAppPedalaCom.Controllers
 
     }
 }
+
+
+
+
+/*
+    EXAMPLE PUT PRODUCT
+
+{
+  "model": "string",
+  "description": "string",
+
+  "product": {
+    "productId": 862,
+    "name": "string",
+    "productNumber": "string",
+    "color": "string",
+    "standardCost": 0,
+    "listPrice": 0,
+    "size": "str",
+    "weight": 1,
+    "productCategoryId": 1,
+    "productModelId": 97,
+    "sellStartDate": "2024-01-15T13:08:28.142Z",
+    "sellEndDate": "2024-01-15T13:08:28.142Z",
+    "discontinuedDate": "2024-01-15T13:08:28.142Z",
+    "ThumbnailPhotoFileName" : "la nostra foto"
+
+  }
+}
+ 
+ 
+ */
