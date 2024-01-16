@@ -20,22 +20,54 @@ namespace WebAppPedalaCom.Controllers
 
         [HttpGet]
         [ActionName("GetOrderDetails")]
-        public async Task<ActionResult<IEnumerable<OrderDetailsDTOs>>> GetOrderDetails()
+        public async Task<ActionResult<IEnumerable<OrderDetailsDTOs>>> GetOrderDetails(int pageNumber = 1)
         {
+            int pageSize = 9;
+            object? paginationInfo = null;
             List<OrderDetailsDTOs> result = new List<OrderDetailsDTOs>();
 
             try
             {
-                result = await _context.OrderDetailsDTO
+                // Execute the raw SQL query to retrieve data
+                var rawSqlResults = await _context.OrderDetailsDTO
                     .FromSqlRaw("EXECUTE GetProductSalesWithDetails")
                     .ToListAsync();
+
+                // Manually perform client-side pagination using List.GetRange
+                var startIndex = (pageNumber - 1) * pageSize;
+                var endIndex = Math.Min(startIndex + pageSize, rawSqlResults.Count);
+
+                if (startIndex < endIndex)
+                {
+                    result = rawSqlResults.GetRange(startIndex, endIndex - startIndex);
+                }
+
+                if (result.Count == 0)
+                {
+                    return Ok();
+                }
+
+                // Get the total number of items in the rawSqlResults
+                int totalItems = rawSqlResults.Count;
+
+                // Calculate the total number of pages
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // Add paginated results and pagination information to the response
+                paginationInfo = new
+                {
+                    pageNumber = pageNumber,
+                    TotalPages = totalPages
+                };
             }
             catch (Exception ex)
             {
                 // Handle exceptions
             }
 
-            return Ok(result);
+            return Ok(new { OrderDetails = result, PaginationInfo = paginationInfo });
         }
+
+
     }
 }
