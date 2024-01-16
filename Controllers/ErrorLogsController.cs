@@ -30,7 +30,7 @@ namespace WebAppPedalaCom.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ErrorLog>>> GetErrorLogs(int pageNumber = 1)
         {
-            int pageSize = 2;
+            int pageSize = 10;
             object? paginationInfo = null;
             List<ErrorLog> errors = new List<ErrorLog>();
 

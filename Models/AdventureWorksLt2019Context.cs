@@ -13,6 +13,7 @@ public partial class AdventureWorksLt2019Context : DbContext
         : base(options)
     {
     }
+    public virtual DbSet<OrderDetailsDTOs> OrderDetailsDTO { get; set; }
 
     public virtual DbSet<Address> Addresses { get; set; }
 
@@ -50,6 +51,8 @@ public partial class AdventureWorksLt2019Context : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
+
+        modelBuilder.Entity<OrderDetailsDTOs>().HasNoKey().ToView(null);
 
         modelBuilder.Entity<Address>(entity =>
         {

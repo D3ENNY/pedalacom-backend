@@ -8,6 +8,13 @@ namespace WebAppPedalaCom.Models;
 /// </summary>
 public partial class SalesOrderDetail
 {
+    private AdventureWorksLt2019Context aDcontext;
+
+    public SalesOrderDetail(AdventureWorksLt2019Context aDcontext)
+    {
+        this.aDcontext = aDcontext;
+    }
+
     /// <summary>
     /// Primary key. Foreign key to SalesOrderHeader.SalesOrderID.
     /// </summary>
