@@ -277,7 +277,6 @@ namespace WebAppPedalaCom.Controllers
         }
 
 
-
         /*      *
          *      *
          *  PUT *  
@@ -285,7 +284,7 @@ namespace WebAppPedalaCom.Controllers
          *      */
 
         // PUT: api/Products/{productId}, {descriptionId}
-        [HttpPut("{productId},{descriptionId}")]
+        [HttpPut("{productId}")]
         public async Task<IActionResult> PutProduct(int productId, [FromBody] PutProductRequest request, int descriptionId = 0)
         {
 
@@ -303,7 +302,7 @@ namespace WebAppPedalaCom.Controllers
                 if (_context.Products.AsNoTracking().Any(prd => prd.ProductId == productId))
                 {
                     string[]? arr = request.product.ThumbnailPhotoFileName?.Split(",");
-                    if (arr.Length > 0)
+                    if (arr != null && arr.Length > 0)
                         newProduct = new()
                         {
                             ProductId = request.product.ProductId,
@@ -325,63 +324,63 @@ namespace WebAppPedalaCom.Controllers
                 else return NotFound("product not found");
 
                 //model management
-                if (_context.ProductModels.AsNoTracking().Any(mod => mod.ProductModelId == request.product.ProductModelId))
-                {
-                    ProductModel? model = _context.ProductModels.AsNoTracking().Where(mod => mod.ProductModelId == request.product.ProductModelId).FirstOrDefault();
-                    if (model != null && model.Name != request.model)
-                        newModel = new ProductModel
-                        {
-                            ProductModelId = model.ProductModelId,
-                            Name = request.model,
-                            CatalogDescription = model.CatalogDescription,
-                            Rowguid = Guid.NewGuid(),
-                            ModifiedDate = DateTime.Now,
-                            ProductModelProductDescriptions = model.ProductModelProductDescriptions,
-                            Products = model.Products
-                        };
-                }
+                //if (_context.ProductModels.AsNoTracking().Any(mod => mod.ProductModelId == request.product.ProductModelId))
+                //{
+                //    ProductModel? model = _context.ProductModels.AsNoTracking().Where(mod => mod.ProductModelId == request.product.ProductModelId).FirstOrDefault();
+                //    if (model != null && model.Name != request.model)
+                //        newModel = new ProductModel
+                //        {
+                //            ProductModelId = model.ProductModelId,
+                //            Name = request.model,
+                //            CatalogDescription = model.CatalogDescription,
+                //            Rowguid = Guid.NewGuid(),
+                //            ModifiedDate = DateTime.Now,
+                //            ProductModelProductDescriptions = model.ProductModelProductDescriptions,
+                //            Products = model.Products
+                //        };
+                //}
 
-                //description management
-                if (descriptionId != 0 && _context.ProductDescriptions.AsNoTracking().Any(desc => desc.ProductDescriptionId == descriptionId))
-                {
-                    ProductDescription? description = _context.ProductDescriptions.AsNoTracking().Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
-                    if (description != null && description.Description != request.description)
-                        newDesc = new ProductDescription
-                        {
-                            ProductDescriptionId = description.ProductDescriptionId,
-                            Description = request.description,
-                            Rowguid = Guid.NewGuid(),
-                            ModifiedDate = DateTime.Now,
-                            ProductModelProductDescriptions = description.ProductModelProductDescriptions,
-                        };
-                }
-                else if (descriptionId == 0 && !request.description.IsNullOrEmpty())
-                {
-                    if(newProduct.ProductModelId == null)
-                    {
-                        newModel = await AddModel(request.model);
+                ////description management
+                //if (descriptionId != 0 && _context.ProductDescriptions.AsNoTracking().Any(desc => desc.ProductDescriptionId == descriptionId))
+                //{
+                //    ProductDescription? description = _context.ProductDescriptions.AsNoTracking().Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
+                //    if (description != null && description.Description != request.description)
+                //        newDesc = new ProductDescription
+                //        {
+                //            ProductDescriptionId = description.ProductDescriptionId,
+                //            Description = request.description,
+                //            Rowguid = Guid.NewGuid(),
+                //            ModifiedDate = DateTime.Now,
+                //            ProductModelProductDescriptions = description.ProductModelProductDescriptions,
+                //        };
+                //}
+                //else if (descriptionId == 0 && !request.description.IsNullOrEmpty())
+                //{
+                //    if(newProduct.ProductModelId == null)
+                //    {
+                //        newModel = await AddModel(request.model);
 
-                        ProductDescription? productDescription = null;
+                //        ProductDescription? productDescription = null;
 
-                        if (newProduct != null)
-                        {
-                            productDescription = await AddDescription(request.description, newProduct.Name);
-                            newDesc = productDescription;
-                        }
+                //        if (newProduct != null)
+                //        {
+                //            productDescription = await AddDescription(request.description, newProduct.Name);
+                //            newDesc = productDescription;
+                //        }
 
-                    }
-                    else
-                    {
-                      newDesc = await AddDescription(request.description, _context.ProductModels.AsNoTracking().FirstOrDefaultAsync(model => model.ProductModelId == newProduct.ProductModelId).Result?.Name ?? "");
-                    }
-                }
+                //    }
+                //    else
+                //    {
+                //      newDesc = await AddDescription(request.description, _context.ProductModels.AsNoTracking().FirstOrDefaultAsync(model => model.ProductModelId == newProduct.ProductModelId).Result?.Name ?? "");
+                //    }
+                //}
                 
-
-                _context.Entry(newProduct).State = EntityState.Modified;
-                if(newModel != null)
-                    _context.Entry(newModel).State = EntityState.Modified;
-                if(newDesc != null)
-                     _context.Entry(newDesc).State = EntityState.Modified;
+                if(newProduct != null)
+                    _context.Entry(newProduct).State = EntityState.Modified;
+                //if(newModel != null)
+                //    _context.Entry(newModel).State = EntityState.Modified;
+                //if(newDesc != null)
+                //     _context.Entry(newDesc).State = EntityState.Modified;
 
                 await _context.SaveChangesAsync();
             }
@@ -480,7 +479,7 @@ namespace WebAppPedalaCom.Controllers
                     product.ProductModelId = productModelId;
                     _context.Products.Add(product);
                     await _context.SaveChangesAsync();
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
@@ -548,8 +547,8 @@ namespace WebAppPedalaCom.Controllers
                     _context.ProductDescriptions.Add(new ProductDescription() { Description = description, Rowguid = Guid.NewGuid(), ModifiedDate = DateTime.Now });
                     await _context.SaveChangesAsync();
                 }
-                int productModelId = (existingModel != null) ? existingModel.ProductModelId : _context.ProductModels.AsNoTracking().Single(x => x.Name == model).ProductModelId;
-                productDescId = (existingDescription != null) ? existingDescription.ProductDescriptionId : _context.ProductDescriptions.AsNoTracking().Single(x => x.Description == description).ProductDescriptionId;
+                int productModelId = (existingModel != null) ? existingModel.ProductModelId : _context.ProductModels.AsNoTracking().FirstOrDefault(x => x.Name == model).ProductModelId;
+                productDescId = (existingDescription != null) ? existingDescription.ProductDescriptionId : _context.ProductDescriptions.AsNoTracking().FirstOrDefault(x => x.Description == description).ProductDescriptionId;
                 _context.ProductModelProductDescriptions.Add(new ProductModelProductDescription()
                 {
                     ProductModelId = productModelId,
@@ -559,6 +558,7 @@ namespace WebAppPedalaCom.Controllers
                     ModifiedDate = DateTime.Now
                 });
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
             return await _context.ProductDescriptions.AsNoTracking().Where(drc => drc.ProductDescriptionId == productDescId).FirstOrDefaultAsync();
 
