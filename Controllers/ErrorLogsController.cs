@@ -36,14 +36,16 @@ namespace WebAppPedalaCom.Controllers
 
             try
             {
-                var errorLogsQuery = _context.ErrorLogs
-                .Where(errorLog => errorLog != null);
+                var errorLogsQuery = _context.ErrorLogs.AsQueryable();
+
+                // Ordina sempre per la colonna TimeStamp
+                errorLogsQuery = errorLogsQuery.OrderByDescending(e => e.TimeStamp);
 
                 // Assicurati che il metodo ToListAsync() sia asincrono
                 var paginatedErrorLogs = await errorLogsQuery
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
                 // Converti i risultati paginati in una lista
                 errors.AddRange(paginatedErrorLogs);
@@ -65,7 +67,6 @@ namespace WebAppPedalaCom.Controllers
                     pageNumber = pageNumber,
                     TotalPages = totalPages
                 };
-
             }
             catch (ArgumentNullException ex)
             {

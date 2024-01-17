@@ -68,6 +68,42 @@ namespace WebAppPedalaCom.Controllers
             return Ok(new { OrderDetails = result, PaginationInfo = paginationInfo });
         }
 
+        [HttpGet("{id:int}")]
+        [ActionName("GetOrderDetailsbyId")]
+
+        public async Task<ActionResult<OrderDetailsDTOs>> GetOrderDetailById(int id)
+        {
+            OrderDetailsDTOs? orderDetail = new();
+            try
+            {
+                var orderDetailList = await _context.OrderDetailsDTO
+                .FromSqlRaw("EXECUTE GetProductSalesWithDetails")
+                .ToListAsync();
+
+                orderDetail = orderDetailList.FirstOrDefault(od => od.ProductID == id);
+
+
+                if (orderDetail == null)
+                {
+                    return NotFound(); // Ritorna 404 se l'ordine con l'ID specificato non è stato trovato
+                }
+
+            }
+            catch (DbUpdateException ex)
+            {
+                // Gestisci le eccezioni specifiche di Entity Framework Core
+                return StatusCode(500, "Errore nell'aggiornamento del database");
+            }
+            catch (Exception ex)
+            {
+                // Gestire eventuali altre eccezioni
+                return StatusCode(500, "Internal Server Error");
+            }
+
+            return Ok(orderDetail);
+
+        }
+
 
     }
 }
