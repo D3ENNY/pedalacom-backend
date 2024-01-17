@@ -359,8 +359,10 @@ namespace WebAppPedalaCom.Controllers
 
 
                 _context.Entry(newProduct).State = EntityState.Modified;
-                _context.Entry(newModel).State = EntityState.Modified;
-                _context.Entry(newDesc).State = EntityState.Modified;
+                if(newModel != null)
+                    _context.Entry(newModel).State = EntityState.Modified;
+                if(newDesc != null)
+                     _context.Entry(newDesc).State = EntityState.Modified;
 
                 await _context.SaveChangesAsync();
             }
