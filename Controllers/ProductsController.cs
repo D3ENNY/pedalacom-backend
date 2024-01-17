@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using WebAppPedalaCom.Blogic.Service;
 using WebAppPedalaCom.Models;
@@ -284,7 +285,7 @@ namespace WebAppPedalaCom.Controllers
          *      */
 
         // PUT: api/Products/{productId}, {descriptionId}
-        [HttpPut("{productId}, {descriptionId}")]
+        [HttpPut("{productId},{descriptionId}")]
         public async Task<IActionResult> PutProduct(int productId, [FromBody] PutProductRequest request, int descriptionId = 0)
         {
 
@@ -339,10 +340,9 @@ namespace WebAppPedalaCom.Controllers
                             Products = model.Products
                         };
                 }
-                else return NotFound("model id invalid");
 
                 //description management
-                if (_context.ProductDescriptions.AsNoTracking().Any(desc => desc.ProductDescriptionId == descriptionId))
+                if (descriptionId != 0 && _context.ProductDescriptions.AsNoTracking().Any(desc => desc.ProductDescriptionId == descriptionId))
                 {
                     ProductDescription? description = _context.ProductDescriptions.AsNoTracking().Where(desc => desc.ProductDescriptionId == descriptionId).FirstOrDefault();
                     if (description != null && description.Description != request.description)
@@ -355,8 +355,27 @@ namespace WebAppPedalaCom.Controllers
                             ProductModelProductDescriptions = description.ProductModelProductDescriptions,
                         };
                 }
-                else return NotFound("description id invalid");
+                else if (descriptionId == 0 && !request.description.IsNullOrEmpty())
+                {
+                    if(newProduct.ProductModelId == null)
+                    {
+                        newModel = await AddModel(request.model);
 
+                        ProductDescription? productDescription = null;
+
+                        if (newProduct != null)
+                        {
+                            productDescription = await AddDescription(request.description, newProduct.Name);
+                            newDesc = productDescription;
+                        }
+
+                    }
+                    else
+                    {
+                      newDesc = await AddDescription(request.description, _context.ProductModels.AsNoTracking().FirstOrDefaultAsync(model => model.ProductModelId == newProduct.ProductModelId).Result?.Name ?? "");
+                    }
+                }
+                
 
                 _context.Entry(newProduct).State = EntityState.Modified;
                 if(newModel != null)
@@ -508,6 +527,42 @@ namespace WebAppPedalaCom.Controllers
 
         private bool ProductExists(int id) => (_context.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
 
+        private async Task<ProductModel?> AddModel(string model) 
+        {
+            _context.ProductModels.Add(new ProductModel() { Name = model, Rowguid = Guid.NewGuid(), ModifiedDate = DateTime.Now });
+            await _context.SaveChangesAsync();
+
+            return await _context.ProductModels.AsNoTracking().Where(prd => prd.Name == model).FirstOrDefaultAsync();
+
+        }
+
+        private async Task<ProductDescription?> AddDescription(string description, string model)
+        {
+            int productDescId = 0;
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                ProductModel? existingModel = await _context.ProductModels.AsNoTracking().FirstOrDefaultAsync(x => x.Name == model);
+                ProductDescription? existingDescription = await _context.ProductDescriptions.AsNoTracking().FirstOrDefaultAsync(x => x.Description == description);
+                if (existingDescription == null)
+                {
+                    _context.ProductDescriptions.Add(new ProductDescription() { Description = description, Rowguid = Guid.NewGuid(), ModifiedDate = DateTime.Now });
+                    await _context.SaveChangesAsync();
+                }
+                int productModelId = (existingModel != null) ? existingModel.ProductModelId : _context.ProductModels.AsNoTracking().Single(x => x.Name == model).ProductModelId;
+                productDescId = (existingDescription != null) ? existingDescription.ProductDescriptionId : _context.ProductDescriptions.AsNoTracking().Single(x => x.Description == description).ProductDescriptionId;
+                _context.ProductModelProductDescriptions.Add(new ProductModelProductDescription()
+                {
+                    ProductModelId = productModelId,
+                    ProductDescriptionId = productDescId,
+                    Culture = "????",
+                    Rowguid = Guid.NewGuid(),
+                    ModifiedDate = DateTime.Now
+                });
+                await _context.SaveChangesAsync();
+            }
+            return await _context.ProductDescriptions.AsNoTracking().Where(drc => drc.ProductDescriptionId == productDescId).FirstOrDefaultAsync();
+
+        }
     }
 }
 
