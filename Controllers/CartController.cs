@@ -31,19 +31,34 @@ namespace WebAppPedalaCom.Controllers
                 return BadRequest();
         }
 
+        
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Cart>>> Getcart(int id)
+        public async Task<ActionResult<IEnumerable<CartInfo>>> Getcart(int id)
         {
-            List<Cart>? product = null;
+            List<CartInfo>? product;
             if (this._context != null)
             {
-                IQueryable<Cart> query = from cart in this._context.Carts
+                IQueryable<CartInfo> query = from cart in this._context.Carts
+                                         join prod in this._context.Products                                
+                                         on cart.ProductId equals prod.ProductId
                                          join customer in this._context.Customers
                                          on cart.CustomerId equals customer.CustomerId
                                          where customer.FkCustomerId == id
-                                         select cart;
+           
+                                         select new CartInfo
+                                         {
+                                             cartID = cart.Id,
+                                             prodID = prod.ProductId,
+                                             nameProd = prod.Name,
+                                             listPrice = prod.ListPrice,
+                                             ThumbNailPhoto = prod.ThumbNailPhoto,
+                                             quantity = cart.Quantity
+
+                                         };
+
                 product = await query.ToListAsync();
-                return product;
+                return Ok(product);
             }
             else
                 return BadRequest();
@@ -59,7 +74,7 @@ namespace WebAppPedalaCom.Controllers
 
             _context.Database.ExecuteSqlRaw($"\r\ndeclare @id int\r\nselect distinct @id = CustomerID from [SalesLT].[Customer] where FK_Customer_id = {customerIdParameter.ParameterName}\r\n\r\nselect @id\r\n\r\nINSERT INTO [dbo].[carts]\r\n           ([customer_id]\r\n           ,[product_id]\r\n           ,[quantity])\r\n     VALUES\r\n           (@id\r\n           ,{productIdParameter.ParameterName},\r\n           {quantityParameter.ParameterName})", customerIdParameter, productIdParameter, quantityParameter);
             await _context.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -71,7 +86,7 @@ namespace WebAppPedalaCom.Controllers
 
             _context.Carts.Remove(cart);
             await _context.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
     }
 }
