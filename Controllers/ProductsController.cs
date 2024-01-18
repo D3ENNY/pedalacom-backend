@@ -412,7 +412,7 @@ namespace WebAppPedalaCom.Controllers
         public async Task<ActionResult<Product>> PostProduct(List<object>data)
         {
             string? model = null, description = null;
-            Product product = null;
+            Product? product = null;
 
             if (_context.Products == null)
             {
@@ -483,7 +483,7 @@ namespace WebAppPedalaCom.Controllers
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    transaction.RollbackAsync();
+                    await transaction.RollbackAsync();
                     _errorLogService.LogError(ex);
                     return Problem($"Message:\n{ex.Message}\nStackTrace:\n{ex.StackTrace}");
                 }

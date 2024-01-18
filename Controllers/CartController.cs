@@ -11,10 +11,7 @@ namespace WebAppPedalaCom.Controllers
     {
         private readonly AdventureWorksLt2019Context _context;
 
-        public CartController(AdventureWorksLt2019Context context)
-        {
-            this._context = context;
-        }
+        public CartController(AdventureWorksLt2019Context context) => this._context = context;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cart>>> GetAll()
@@ -25,7 +22,7 @@ namespace WebAppPedalaCom.Controllers
                 result = await _context.Carts
                     .FromSqlRaw("SELECT * from carts")
                     .ToListAsync();
-                return result;
+                return Ok(result);
             }
             else
                 return BadRequest();
