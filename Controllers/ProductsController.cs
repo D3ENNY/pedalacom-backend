@@ -283,9 +283,9 @@ namespace WebAppPedalaCom.Controllers
          *      *
          *      */
 
-        // PUT: api/Products/{productId}, {descriptionId}
+        // PUT: api/Products/{productId}
         [HttpPut("{productId}")]
-        public async Task<IActionResult> PutProduct(int productId, [FromBody] PutProductRequest request, int descriptionId = 0)
+        public async Task<IActionResult> PutProduct(int productId, [FromBody] PutProductRequest request/*, int descriptionId = 0*/)
         {
 
             Product? newProduct = null;
